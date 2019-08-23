@@ -1,5 +1,14 @@
 import mongoose from "mongoose";
 
+const api_url = "172.10.10.176:27017/Sandbox";
+export const todos = `${api_url}/todos`;
+export const users = `${api_url}/users`;
+
+mongoose.connect(`mongodb://${api_url}`, {
+  useCreateIndex: true,
+  useNewUrlParser: true
+});
+
 const Schema = new mongoose.Schema();
 const todoSchema = new Schema({
   title: {
