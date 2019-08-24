@@ -1,16 +1,19 @@
 import mongoose from "mongoose";
 
-const db_url = 'mongodb://mongodb:27017/Sanbox';
+// const db_url = "mongodb:27017/Sanbox";
+const db_url = 'localhost:27017/Sandbox';
 
 mongoose.connect(`mongodb://${db_url}`, {
   useCreateIndex: true,
   useNewUrlParser: true
 });
 
-mongoose.connection.on('connected', () => console.log('Connected to Sanbox Database'));
-mongoose.connection.on('error', (error) => console.error(error));
+mongoose.connection.on("connected", () =>
+  console.log("Connected to Sanbox Database")
+);
+mongoose.connection.on("error", error => console.error(error));
 
-const Schema = new mongoose.Schema();
+const Schema = mongoose.Schema;
 const todoSchema = new Schema({
   title: {
     type: String,
@@ -34,21 +37,28 @@ const todoSchema = new Schema({
 const userSchema = new Schema({
   name: {
     firstName: {
-      type: String
+      type: String,
+      default: ""
     },
     lastName: {
-      type: String
+      type: String,
+      default: ""
     }
   },
   email: {
     type: String,
     required: true,
     index: true,
-    uniquer: true
+    unique: true
   },
   password: {
     type: String,
     required: true
+  },
+  sessionToken: {
+    type: String,
+    default: "",
+    index: true
   }
 });
 
