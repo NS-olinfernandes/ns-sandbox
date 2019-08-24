@@ -23,3 +23,12 @@ export async function logotUser(callback = Function) {
         return callback(error);
     }
 }
+
+// IsLoggedIn User - Post api call
+export async function isloggedin(callback = Function) {
+    try {
+        
+    } catch (error) {
+        
+    }
+}
