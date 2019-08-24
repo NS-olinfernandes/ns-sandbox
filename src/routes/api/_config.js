@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
-// const db_url = "mongodb:27017/Sanbox";
-const db_url = 'localhost:27017/Sandbox';
+const db_url = "mongodb:27017/Sanbox";
+// const db_url = 'localhost:27017/Sandbox';
 
 mongoose.connect(`mongodb://${db_url}`, {
   useCreateIndex: true,
