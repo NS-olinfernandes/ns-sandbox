@@ -1,12 +1,15 @@
-import { signal, setOptions, User, api_routes } from "./config";
+import { setOptions, api_routes } from "./config";
 
 const authApi = api_routes["auth"];
 
-// Login User - GET api call
+// Login User - POST api call
 export async function loginUser(user = {}, callback = Function) {
   try {
-    const response = await fetch(`${authApi}/login`, setOptions());
-    const data = await response.json();
+    const response = await fetch(`${authApi}/login`, setOptions({
+      method: 'POST',
+      body: user
+    }));
+    const data = response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -17,18 +20,34 @@ export async function loginUser(user = {}, callback = Function) {
 export async function logotUser(callback = Function) {
     try {
         const response = await fetch(`${authApi}/logout`, setOptions());
-        const data = await response.json();
+        const data = response.json();
         return callback(null, data);
     } catch (error) {
         return callback(error);
     }
 }
 
-// IsLoggedIn User - Post api call
+// IsLoggedIn User - GET api call
 export async function isloggedin(callback = Function) {
     try {
-        
+        const response = await fetch(`${authApi}/isloggedin`, setOptions());
+        const data = response.json();
+        return callback(null, data);
     } catch (error) {
-        
+        return callback(error);
     }
+}
+
+// Add/Register User - POST api call
+export async function register(user = {}, callback = Function) {
+  try {
+    const response = await fetch(`${authApi}/register`, setOptions({
+      method: 'POST',
+      body: user
+    }));
+    const data = response.json();
+    return callback(null, data);
+  } catch (error) {
+    return callback(error);
+  }
 }

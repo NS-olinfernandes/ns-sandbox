@@ -1,12 +1,4 @@
-import mongoose from "mongoose";
-
-// const api_url = "172.10.10.176:27017/Sandbox";
-const api_url = "mongodb:27017/Sandbox";
-mongoose.connect(`mongodb://${api_url}`, {
-  useCreateIndex: true,
-  useNewUrlParser: true
-});
-
+const api_url = "/api";
 const routes = ['auth','todos','users'];
 export const api_routes = routes.map(route => {
   const exportRoute = {
@@ -15,56 +7,10 @@ export const api_routes = routes.map(route => {
   return exportRoute;
 });
 
-
-const Schema = new mongoose.Schema();
-const todoSchema = new Schema({
-  title: {
-    type: String,
-    required: true,
-    index: true
-  },
-  body: {
-    type: String,
-    required: true
-  },
-  created_at: {
-    type: Date,
-    default: Date.now()
-  },
-  created_by: {
-    type: String,
-    required: true,
-    index: true
-  }
-});
-const userSchema = new Schema({
-  name: {
-    firstName: {
-      type: String
-    },
-    lastName: {
-      type: String
-    }
-  },
-  email: {
-    type: String,
-    required: true,
-    index: true,
-    uniquer: true
-  },
-  password: {
-    type: String,
-    required: true
-  }
-});
-
-export const Todo = mongoose.model("Todo", todoSchema);
-export const User = mongoose.model("User", userSchema);
-
 export const abortController = new AbortController();
 export const signal = abortController.signal;
 
-export const setOptions = () => {
+export const setOptions = (params) => {
   let token;
   let headers;
   localStorage.length > 0
@@ -78,5 +24,7 @@ export const setOptions = () => {
     : (headers = {
         "Content-Type": "application/json"
       });
-  return { headers, signal };
+  params !== undefined 
+      ? ({ headers, signal, ...params })
+      : ({ headers, signal });
 };
