@@ -1,13 +1,20 @@
 import mongoose from "mongoose";
 
-const api_url = "172.10.10.176:27017/Sandbox";
-export const todos = `${api_url}/todos`;
-export const users = `${api_url}/users`;
-
+// const api_url = "172.10.10.176:27017/Sandbox";
+const api_url = "mongodb:27017/Sandbox";
 mongoose.connect(`mongodb://${api_url}`, {
   useCreateIndex: true,
   useNewUrlParser: true
 });
+
+const routes = ['auth','todos','users'];
+export const api_routes = routes.map(route => {
+  const exportRoute = {
+    [route]: `${api_url}/${route}`
+  }
+  return exportRoute;
+});
+
 
 const Schema = new mongoose.Schema();
 const todoSchema = new Schema({
