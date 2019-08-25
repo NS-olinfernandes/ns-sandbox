@@ -2,7 +2,7 @@ import { User } from '../_config';
 
 // Register new User - POST api response
 export async function post(req, res) {
-    const { user } = req.body;
+    const user = req.query;
     const newUser = new User({
         name: {
             firstName: user.firstName,
@@ -20,6 +20,12 @@ export async function post(req, res) {
         return res.end(JSON.stringify(response))
     } catch (error) {
         console.error(error);
+        if(error.code === 11000){
+            res.writeHead(401, {
+                'Content-Type': 'application/json'
+            })
+            return res.end(JSON.stringify({message: 'Email already exists!'}))
+        }
         res.writeHead(500, {
             'Content-Type': 'application/json'
         })

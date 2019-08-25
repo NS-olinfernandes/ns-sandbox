@@ -1,16 +1,15 @@
 const api_url = "/api";
-const routes = ['auth','todos','users'];
+const routes = ["auth", "todos", "users"];
 export const api_routes = routes.map(route => {
-  const exportRoute = {
+  return {
     [route]: `${api_url}/${route}`
-  }
-  return exportRoute;
+  };
 });
 
 export const abortController = new AbortController();
 export const signal = abortController.signal;
 
-export const setOptions = (params) => {
+export const setOptions = (params = {}) => {
   let token;
   let headers;
   localStorage.length > 0
@@ -24,7 +23,5 @@ export const setOptions = (params) => {
     : (headers = {
         "Content-Type": "application/json"
       });
-  params !== undefined 
-      ? ({ headers, signal, ...params })
-      : ({ headers, signal });
+  return params !== {} ? { headers, signal, ...params } : { headers, signal };
 };

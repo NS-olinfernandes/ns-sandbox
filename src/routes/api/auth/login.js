@@ -2,7 +2,7 @@ import { User } from "../_config";
 
 // Login User - POST api response
 export async function post(req, res) {
-  const { user } = req.body;
+  const user = req.query;
   if (user !== undefined && user !== null && user !== {}) {
     const { email } = user;
     try {

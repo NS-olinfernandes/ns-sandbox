@@ -1,4 +1,5 @@
 import sirv from "sirv";
+import morgan from 'morgan';
 import express from "express";
 import helmet from "helmet";
 import compression from "compression";
@@ -9,6 +10,7 @@ const dev = NODE_ENV === "development";
 
 express()
   .use(
+    morgan('dev'),
     helmet(),
     compression({ threshold: 0 }),
     sirv("static", { dev }),
