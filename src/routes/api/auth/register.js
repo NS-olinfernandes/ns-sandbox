@@ -2,15 +2,15 @@ import { User, hashPassword } from "../_config";
 
 // Register new User - POST api response
 export async function post(req, res) {
-  const user = req.body;
-  console.log(hashPassword(user.password));
+  const { firstName, lastName, email, password } = req.body;
+  console.log(hashPassword(password));
   const newUser = new User({
     name: {
-      firstName: user.firstName,
-      lastName: user.lastName
+      firstName,
+      lastName
     },
-    email: user.email,
-    password: user.password
+    email,
+    password
   });
   try {
     const response = await newUser.save();
