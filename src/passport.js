@@ -15,24 +15,25 @@ passport.use(
       passwordField: "password"
     },
     async (email, password, callback) => {
-    //   password = hashPassword(password);
+        password = hashPassword(password);
       try {
         const user = await User.findOne({ email, password });
-        !user
-          ? callback(null, false, { message: "Incorrect email or password" })
-          : () => {
-              const token = generateToken(user);
-              user.token = token;
-              User.update(email, { acessToken: token }, (err, response) => {
-                if (err) return callback(err);
-                console.log(
-                  `DB updated with access token: ${response.accessToken}`
-                );
-              });
-              return callback(null, user, {
-                message: "Logged in successfully"
-              });
-            };
+        if (!user) {
+          return callback(null, false, {
+            message: "Incorrect email or password"
+          });
+        } else {
+          user.token = generateToken(user);
+          User.update(email, { acessToken: token }, (err, response) => {
+            if (err) return callback(err);
+            console.log(
+              `DB updated with access token: ${response.accessToken}`
+            );
+          });
+          return callback(null, user, {
+            message: "Logged in successfully"
+          });
+        }
       } catch (error) {
         return callback(error);
       }
@@ -55,3 +56,5 @@ passport.use(
     }
   )
 );
+
+export default passport;
