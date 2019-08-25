@@ -75,7 +75,7 @@ const verifyToken = (token = "", callback = Function) =>
 
 export function hashPassword(password = "") {
   bcrypt.genSalt(10, (err, salt) => {
-    bcrypt.hash(password, salt, (err, hash) => hash);
+    bcrypt.hash(password, salt, (err, hash) => (hash));
   });
 }
 
@@ -87,7 +87,8 @@ export async function authenticateUser(
   // password = hashPassword(password);
   User.findOne(
     {
-      email
+      email,
+      password
     },
     (err, user) => {
       if (err) return callback(err);
