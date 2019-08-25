@@ -7,23 +7,13 @@ export async function get(req, res) {
     const token = authorization.split(" ")[1];
     try {
       const log = await User.update(
-        { sessionToken: token },
-        { sessionToken: "" }
+        { accessToken: token },
+        { accessToken: "" }
       );
-      res.writeHead(200, {
-        "Content-Type": "application/json"
-      });
-      return res.end(JSON.stringify(log));
+      return res.status(200).json(log);
     } catch (error) {
-      res.writeHead(500, {
-        "Content-Type": "application/json"
-      });
-      return res.end(JSON.stringify(error));
+      return res.status(500).send(error);
     }
-  } else {
-    res.writeHead(400, {
-      "Content-Type": "application/json"
-    });
-    return res.end(JSON.stringify({ message: "Missing Token" }));
   }
+  res.status(400).json({ message: "Missing Token" });
 }

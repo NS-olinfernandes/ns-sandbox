@@ -1,34 +1,14 @@
-import passport from '../../../passport';
+import { authenticateUser } from '../_config';
 
 // Login User - POST api response
 export async function post(req, res) {
-  const user = req.query;
-  if (user !== undefined && user !== null && user !== {}) {
-    // res.writeHead(200, {
-    //   'Content-Type': 'application/json'
-    // });
-    // return res.end(JSON.stringify(user));
-    passport.authenticate("local", { session: false }, (err, data, info) => {
-      console.log("Reached Passport");
-      if (err || !data) {
-        return res.status(400).json({
-          message: info.message,
-          user: data
-        });
-      }
-      return req.login(data, { session: false }, err => {
-        if (err) {
-          return res.send(err);
-        }
-        return res.status(200).json({
-          message: info.message,
-          token: data.accessToken
-        });
-      });
-    });
+  if (req.body !== undefined && req.body !== null && req.body !== {}) {
+    const {email, password} = req.body;
+    return authenticateUser(email, password, (err, user, info) => {
+      if(err) return res.status(500).send(err);
+      if(!user) return res.status(401).json(info.message);
+      res.status(200).json(user);
+    })
   }
-  res.writeHead(400, {
-    "Content-Type": "application/json"
-  });
-  return res.end(JSON.stringify({ message: "Invalid Input!" }));
+  res.status(400).json({ message: "Invalid Input!" });
 }

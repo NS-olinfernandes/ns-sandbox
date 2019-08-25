@@ -1,16 +1,9 @@
 import mongoose from "mongoose";
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-
-export const secret = '7FGT5VQ2BU';
-export const generateToken = (payload = {}) => {
-    const token = jwt.sign(payload, secret);
-    return token;
-};
-const verifyToken = (token = '', callback = Function) => jwt.verify(token, secret, callback);
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 // const db_url = "mongodb:27017/Sanbox";
-const db_url = 'localhost:27017/Sandbox';
+const db_url = "localhost:27017/Sandbox";
 
 mongoose.connect(`mongodb://${db_url}`, {
   useCreateIndex: true,
@@ -64,18 +57,79 @@ const userSchema = new Schema({
     type: String,
     required: true
   },
-  acessToken: {
-    type: String,
-    default: "",
-    index: true
+  accessToken: {
+    type: String
   }
 });
 
 export const Todo = mongoose.model("Todo", todoSchema);
 export const User = mongoose.model("User", userSchema);
 
-export function hashPassword(password = '') {
+export const secret = "7FGT5VQ2BU";
+const generateToken = (payload = {}) => {
+  const token = jwt.sign(payload, secret);
+  return token;
+};
+const verifyToken = (token = "", callback = Function) =>
+  jwt.verify(token, secret, callback);
+
+export function hashPassword(password = "") {
   bcrypt.genSalt(10, (err, salt) => {
-    bcrypt.hash("B4c0/\/", salt, (err, hash) => hash)
-  })
+    bcrypt.hash(password, salt, (err, hash) => hash);
+  });
+}
+
+export async function authenticateUser(
+  email = "",
+  password = "",
+  callback = Function
+) {
+  // password = hashPassword(password);
+  User.findOne(
+    {
+      email
+    },
+    (err, user) => {
+      if (err) return callback(err);
+      if (!user) {
+        return callback(null, false, {
+          message: "Incorrect email or password"
+        });
+      }
+      user.token = generateToken({ email, password });
+      User.updateOne(
+        { email },
+        {
+          accessToken: user.token,
+          password: hashPassword(password)
+        }
+      );
+      callback(null, user, {
+        message: "Logged in successfully"
+      });
+    }
+  );
+}
+
+export async function authenticateToken(token = "", callback = Function) {
+  verifyToken(token, (err, payload) => {
+    if (err) return callback(err);
+    const { email, password } = payload;
+    User.findOne(
+      {
+        email,
+        password
+      },
+      (err, user) => {
+        if (err) return callback(err);
+        if (!user)
+          return callback(null, false, {
+            message: "No User found"
+          });
+        callback(null, user, {
+          message: "Token verified!"
+        });
+      }
+    );
+  });
 }
