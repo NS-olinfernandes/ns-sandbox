@@ -1,4 +1,4 @@
-import { User } from '../_config';
+import { User, hashPassword } from '../_config';
 
 // Register new User - POST api response
 export async function post(req, res) {
@@ -9,7 +9,7 @@ export async function post(req, res) {
             lastName: user.lastName
         },
         email: user.email,
-        password: user.password
+        password: hashPassword(user.password)
     });
     try {
         const response = await newUser.save();
