@@ -6,17 +6,18 @@ import jwt from 'jsonwebtoken';
 const db_url = 'localhost:27017/Sandbox';
 // const db_url = "172.18.0.2:27017/Sandbox";
 
+// MongoDB connection.
 mongoose.connect(`mongodb://${db_url}`, {
   useCreateIndex: true,
   useNewUrlParser: true
 });
-
 mongoose.connection.on('connected', () =>
   console.log('Connected to Sanbox Database')
 );
 mongoose.connection.on('error', error => console.error(error));
 
 const Schema = mongoose.Schema;
+// Todo model Schema
 const todoSchema = new Schema({
   title: {
     type: String,
@@ -38,6 +39,7 @@ const todoSchema = new Schema({
     index: true
   }
 });
+// User model Schema
 const userSchema = new Schema({
   name: {
     firstName: {
@@ -67,19 +69,18 @@ const userSchema = new Schema({
 export const Todo = mongoose.model('Todo', todoSchema);
 export const User = mongoose.model('User', userSchema);
 
+// Secret for token signing & password hashing.
 export const secret = '7FGT5VQ2BU';
+// Generate new JWT
 const generateToken = (payload = Object()) => {
   const token = jwt.sign(payload, secret);
   return token;
 };
+// Verify existing JWT
 const verifyToken = (token = String(), callback = Function()) =>
   jwt.verify(token, secret, callback);
-
-const hashPassword = (password = String()) => {
-  let salt = bcrypt.genSaltSync(8);
-  let hashedPass = bcrypt.hashSync(password, salt);
-  return hashedPass;
-};
+// Generate password hash
+const hashPassword = (password = String()) => bcrypt.hashSync(password, secret);
 
 // Validate Token - Devrypt token & check DB for user
 export async function authenticateToken(
@@ -108,40 +109,6 @@ export async function authenticateToken(
         );
       }
     );
-  });
-}
-
-// Login User - DB query & callbacl
-export async function authenticateUser(
-  { email = String(), password = String() },
-  callback = Function()
-) {
-  if (email === '' || password === '')
-    return callback(null, false, {
-      message: 'Email and/or password missing'
-    });
-  const hashedPassword = hashPassword(password);
-  const token = generateToken({ email, password: hashedPassword });
-  User.findOne({ email }, (err, user) => {
-    if (err) return callback(err);
-    if (!user)
-      return callback(null, false, {
-        message: 'Incorrect email'
-      });
-    if (!bcrypt.compareSync(password, user.password))
-      return callback(null, false, {
-        message: 'Password mismatch'
-      });
-    User.updateOne({ email }, { accessToken: token }, (err, response) => {
-      if (err) return callback(err);
-      if (response.ok)
-        return callback(null, user, {
-          message: 'Logged in successfully'
-        });
-      callback(null, false, {
-        message: 'Something went wrong'
-      });
-    });
   });
 }
 
@@ -180,7 +147,46 @@ export async function registerUser(newUser = {}, callback = Function()) {
   });
 }
 
+// Login User - DB query & callback
+export async function authenticateUser(
+  { email = String(), password = String() },
+  callback = Function()
+) {
+  if (email === '' || password === '')
+    return callback(null, false, {
+      message: 'Email and/or password missing'
+    });
+  const hashedPassword = hashPassword(password);
+  const token = generateToken({ email, password: hashedPassword });
+  User.findOne({ email }, (err, user) => {
+    if (err) return callback(err);
+    if (!user)
+      return callback(null, false, {
+        message: 'Incorrect email'
+      });
+    if (!bcrypt.compareSync(password, user.password))
+      return callback(null, false, {
+        message: 'Password mismatch'
+      });
+    User.updateOne({ email }, { accessToken: token }, (err, response) => {
+      if (err) return callback(err);
+      if (response.ok)
+        return callback(null, user, {
+          message: 'Logged in successfully'
+        });
+      callback(null, false, {
+        message: 'Something went wrong'
+      });
+    });
+  });
+}
+
+// Logout User - DB query & callback
+export async function logoutUser() {}
+
+// Collection Operations - DB query & callback
 export const collectionOps = {
+  // GET document list from collection database.
   getList: async (db = String(), callback = Function()) => {
     if (/users/.test(db)) {
       return User.find((err, dataList) => {
@@ -210,6 +216,7 @@ export const collectionOps = {
       message: 'Invalid Database'
     });
   },
+  // Add new document list to collection database.
   addList: async (db = String(), lists = Array(), callback = Function()) => {
     console.log(typeof lists);
     if (/users/.test(db)) {
@@ -273,7 +280,9 @@ export const collectionOps = {
   }
 };
 
+// Document Operations - DB query & callback
 export const documentOps = {
+  // GET document by id from collection database.
   get: async (db = String(), id = String(), callback = Function()) => {
     if (/users/.test(db)) {
       return User.findById(id, (err, user) => {
@@ -303,6 +312,7 @@ export const documentOps = {
       message: 'Invalid Database'
     });
   },
+  // Update document by id with new data and save to collection database.
   put: async (
     db = String(),
     id = String(),
@@ -337,6 +347,7 @@ export const documentOps = {
       message: 'Invalid Database'
     });
   },
+  // Delete document by id from collection database.
   del: async (db = String(), id = String(), callback = Function()) => {
     if (/users/.test(db)) {
       return User.remove({ _id: id }, err => {
