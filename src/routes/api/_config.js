@@ -3,8 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 // const db_url = "mongodb:27017/Sanbox";
-// const db_url = "localhost:27017/Sandbox";
-const db_url = "172.18.0.2:27017/Sandbox";
+const db_url = "localhost:27017/Sandbox";
+// const db_url = "172.18.0.2:27017/Sandbox";
 
 mongoose.connect(`mongodb://${db_url}`, {
   useCreateIndex: true,
@@ -67,19 +67,20 @@ export const Todo = mongoose.model("Todo", todoSchema);
 export const User = mongoose.model("User", userSchema);
 
 export const secret = "7FGT5VQ2BU";
-const generateToken = (payload = Object) => {
+const generateToken = (payload = Object()) => {
   const token = jwt.sign(payload, secret);
   return token;
 };
 const verifyToken = (token = String(), callback = Function()) =>
   jwt.verify(token, secret, callback);
 
-const hashPassword = async (password = String()) => {
-  let salt = await bcrypt.genSalt(8);
-  let hashedPass = await bcrypt.hash(password, salt);
+const hashPassword = (password = String()) => {
+  let salt = bcrypt.genSaltSync(8);
+  let hashedPass = bcrypt.hashSync(password, salt);
   return hashedPass;
 };
 
+// Validate Token - Devrypt token & check DB for user
 export async function authenticateToken(
   token = String(),
   callback = Function()
@@ -98,7 +99,7 @@ export async function authenticateToken(
           return callback(null, false, {
             message: "No User found"
           });
-        callback(null, user, {
+        callback(null, ({ name, email, accessToken } = user), {
           message: "Token verified!"
         });
       }
@@ -106,6 +107,7 @@ export async function authenticateToken(
   });
 }
 
+// Login User - DB query & callbacl
 export async function authenticateUser(
   { email = String(), password = String() },
   callback = Function()
@@ -114,8 +116,8 @@ export async function authenticateUser(
     return callback(null, false, {
       message: "Email and/or password missing"
     });
-  const hashedPassword = await hashPassword(password);
-  const token = await generateToken({ email, hashedPassword });
+  const hashedPassword = hashPassword(password);
+  const token = generateToken({ email, hashedPassword });
   User.findOne({ email }, (err, user) => {
     if (err) return callback(err);
     if (!user)
@@ -139,13 +141,14 @@ export async function authenticateUser(
   });
 }
 
+// Register a new user - DB query & callback
 export async function registerUser(newUser = {}, callback = Function()) {
   const { firstName, lastName, email, password } = newUser;
   if (email === undefined || password === undefined)
     return callback(null, false, {
       message: "Email or password missing!"
     });
-  const hashedPassword = await hashPassword(password);
+  const hashedPassword = hashPassword(password);
   User.findOne({ email }, (err, user) => {
     if (err) return callback(err);
     if (!user) {
@@ -171,4 +174,107 @@ export async function registerUser(newUser = {}, callback = Function()) {
       message: "Email already exists!"
     });
   });
+}
+
+export const collectionOps = {
+  getList: async (db = String(), callback = Function()) => {
+    if (/users/.test(db)) {
+      return User.find((err, dataList) => {
+        if (err) return callback(err);
+        if (!dataList)
+          return callback(null, false, {
+            message: "No items in database"
+          });
+        callback(null, dataList, {
+          message: "Data list found"
+        });
+      });
+    }
+    if (/todos/.test(db)) {
+      return Todo.find((err, dataList) => {
+        if (err) return callback(err);
+        if (!dataList)
+          return callback(null, false, {
+            message: "No items in database"
+          });
+        callback(null, dataList, {
+          message: "Data list found"
+        });
+      });
+    }
+    callback(null, false, {
+      message: "Invalid Database"
+    });
+  },
+  addList: async (db = String(), lists = Array(), callback = Function()) => {
+    if (/users/.test(db)) {
+      const dataList = lists.map((list, i) => {
+        const { firstName, lastName, email, password } = list;
+        const newUser = new User({
+          name: {
+            firstName,
+            lastName
+          },
+          email,
+          password: hashPassword(password)
+        });
+        return newUser.save((err, user) => {
+          if (err) return { invalid: i, error: err };
+          return user;
+        });
+      });
+      if(dataList.filter(data => data.invalid === undefined).length > 0){
+        return callback(null, false, {
+          message: 'Encountered Invalid Inputs',
+          request: list,
+          response: dataList
+        })
+      }
+      return callback(null, dataList, {
+        message: 'New entries added to Database'
+      })
+    }
+    if (/todos/.test(db)) {
+      const dataList = lists.map((list, i) => {
+        const { title, body, author } = list;
+        const newTodo = new Todo({
+          title,
+          body,
+          created_by: author
+        });
+        return newTodo.save((err, todo) => {
+          if (err) return { invalid: i, error: err };
+          return todo;
+        });
+      });
+      if(dataList.filter(data => data.invalid === undefined).length > 0){
+        return callback(null, false, {
+          message: 'Encountered Invalid Inputs',
+          request: list,
+          response: dataList
+        })
+      }
+      return callback(null, dataList, {
+        message: 'New entries added to Database'
+      })
+    }
+    callback(null, false, {
+      message: "Invalid Database"
+    });
+  }
+};
+
+export const documentOps = {
+  get: (db = String(), id = String(), callback = Function()) => {
+    User.findOne({_id: id}, callback)
+    Todo.findOne({_id: id}, callback)
+  },
+  put: (db = String(), id = String(), data = Object(), callback = Function()) => {
+    User.findOneAndUpdate({_id: id}, {...data}, callback)
+    Todo.findOneAndUpdate({_id: id}, {...data}, callback)
+  },
+  del: (db = String(), id = String(), callback = Function()) => {
+    User.remove({_id: id}, callback)
+    Todo.remove({_id: id}, callback)
+  }
 }
