@@ -1,5 +1,6 @@
 import { authenticateToken, documentOps } from '../_config';
 const db = 'users';
+
 export async function get(req, res) {
   if (req.headers.authorization === undefined || req.params.slug === undefined)
     return res.status(401).json('Invalid Token or Input');
@@ -15,6 +16,7 @@ export async function get(req, res) {
     });
   });
 }
+
 export async function put(req, res) {
   if (req.headers.authorization === undefined || req.params.slug === undefined)
     return res.status(401).json('Invalid Token or Input');
@@ -31,6 +33,7 @@ export async function put(req, res) {
     });
   });
 }
+
 export async function del(req, res) {
   if (req.headers.authorization === undefined || req.params.slug === undefined)
     return res.status(401).json('Invalid Token or Input');
