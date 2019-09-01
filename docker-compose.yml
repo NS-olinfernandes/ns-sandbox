@@ -1,4 +1,4 @@
-version: '2.1'
+version: "3.4"
 
 services:
   ns-sandbox:
@@ -7,9 +7,8 @@ services:
     environment:
       NODE_ENV: production
     ports:
-      - 3000:3000
+      - 8080:3000
     links:
       - ns-mongodb1
   ns-mongodb1:
     image: mongo
-    
