@@ -22,8 +22,7 @@
       const { message = "", token = "" } = data;
       if (token !== "") localStorage.setItem("token", JSON.stringify(token));
       console.info(message);
-      email = "";
-      password = "";
+      (email = ""), (password = "");
     });
   }
   function handleRegister(e = Object()) {
