@@ -2,8 +2,8 @@ import { logoutUser } from "../_config";
 
 // Logout user - GET api response
 export async function get(req, res) {
-  const { headers: authorization = null } = req;
-  !authorization
+  const { authorization = null } = req.headers;
+  authorization === null
     ? res.status(400).json({ message: "Missing authorization header" })
     : logoutUser(authorization.split(" ")[1], (err, response, info) => {
         err

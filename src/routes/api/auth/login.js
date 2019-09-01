@@ -2,9 +2,10 @@ import { authenticateUser } from "../_config";
 
 // Login User - POST api response
 export async function post(req, res) {
-  !req.body
+  const { body = null } = req;
+  body === null
     ? res.status(400).json({ message: "Invalid input" })
-    : authenticateUser(req.body, (err, user, info) => {
+    : authenticateUser(body, (err, user, info) => {
         err
           ? res.status(500).send(err)
           : !user

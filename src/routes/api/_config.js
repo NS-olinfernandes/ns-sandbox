@@ -220,7 +220,7 @@ export const collectionOps = {
   // GET document list from collection database.
   getList: async (db = String(), callback = Function()) => {
     switch (db) {
-      case /[uU]sers/:
+      case "users":
         return User.find((err, dataList) => {
           err
             ? callback(err)
@@ -232,7 +232,7 @@ export const collectionOps = {
                 message: "Data list found"
               });
         });
-      case /[tT]odos/:
+      case "todos":
         return Todo.find((err, dataList) => {
           err
             ? callback(err)
