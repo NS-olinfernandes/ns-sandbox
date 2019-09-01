@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from "svelte";
   import {
     loginUser,
     logoutUser,
@@ -15,16 +16,6 @@
   function handleFramework(e = Object()) {
     console.log(e.target.value);
   }
-  function handleLogin(e = Object()) {
-    e.preventDefault();
-    loginUser({ email, password }, (err, data) => {
-      if (err) return console.warn(err);
-      const { message = "", token = "" } = data;
-      if (token !== "") localStorage.setItem("token", JSON.stringify(token));
-      console.info(message);
-      (email = ""), (password = "");
-    });
-  }
   function handleRegister(e = Object()) {
     e.preventDefault();
     registerUser({ firstName, lastName, email, password }, (err, data) => {
@@ -35,6 +26,32 @@
       (firstName = ""), (lastName = ""), (email = ""), (password = "");
     });
   }
+  function handleLogin(e = Object()) {
+    e.preventDefault();
+    loginUser({ email, password }, (err, data) => {
+      if (err) return console.warn(err);
+      const { message = "", token = "" } = data;
+      if (token !== "") localStorage.setItem("token", JSON.stringify(token));
+      console.info(message);
+      (email = ""), (password = "");
+    });
+  }
+  function handleLoggedIn() {
+    isLoggedIn((err, data) => {
+      if (err) return console.warn(err);
+      localStorage.setItem("token", JSON.stringify(data.token));
+    });
+  }
+
+  onMount(() => {
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+    if (localStorage.length > 0) {
+      handleLoggedIn();
+    }
+
+    return abortController.abort;
+  });
 </script>
 
 <style>
