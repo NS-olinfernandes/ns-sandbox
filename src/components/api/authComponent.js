@@ -1,9 +1,8 @@
 import { setOptions, api_routes } from "./config";
 
-const authApi = api_routes["auth"];
-
+const authApi = api_routes[0]["auth"];
 // Logout User - GET api call
-export async function logotUser(callback = Function) {
+export async function logotUser(callback = Function()) {
   try {
     const response = await fetch(`${authApi}/logout`, setOptions());
     const data = await response.json();
@@ -14,7 +13,7 @@ export async function logotUser(callback = Function) {
 }
 
 // IsLoggedIn User - GET api call
-export async function isloggedin(callback = Function) {
+export async function isLoggedIn(callback = Function()) {
   try {
     const response = await fetch(`${authApi}/isloggedin`, setOptions());
     const data = await response.json();
@@ -25,13 +24,13 @@ export async function isloggedin(callback = Function) {
 }
 
 // Login User - POST api call
-export async function loginUser(user = {}, callback = Function) {
+export async function loginUser(user = {}, callback = Function()) {
   try {
     const response = await fetch(
       `${authApi}/login`,
       setOptions({
         method: "POST",
-        body: user
+        body: JSON.stringify(user)
       })
     );
     const data = await response.json();
@@ -42,13 +41,13 @@ export async function loginUser(user = {}, callback = Function) {
 }
 
 // Add/Register User - POST api call
-export async function register(user = {}, callback = Function) {
+export async function registerUser(user = {}, callback = Function()) {
   try {
     const response = await fetch(
       `${authApi}/register`,
       setOptions({
         method: "POST",
-        body: user
+        body: JSON.stringify(user)
       })
     );
     const data = await response.json();

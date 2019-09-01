@@ -5,9 +5,8 @@ export const api_routes = routes.map(route => {
     [route]: `${api_url}/${route}`
   };
 });
-
-export const abortController = new AbortController();
-export const signal = abortController.signal;
+// export const abortController = new AbortController();
+// export const signal = abortController.signal;
 
 export const setOptions = (params = {}) => {
   let token;
@@ -23,5 +22,5 @@ export const setOptions = (params = {}) => {
     : (headers = {
         "Content-Type": "application/json"
       });
-  return params !== {} ? { headers, signal, ...params } : { headers, signal };
+  return params !== {} ? { headers, ...params } : { headers };
 };

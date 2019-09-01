@@ -9,7 +9,7 @@ export function post(req, res) {
         err
           ? res.status(500).send(err)
           : !user
-          ? res.status(401).json(info.message)
+          ? res.status(401).json(info)
           : res.status(200).json({ message: info.message, token: user.token });
       });
 }

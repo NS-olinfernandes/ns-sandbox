@@ -8,8 +8,8 @@ export function get(req, res) {
     : logoutUser(authorization.split(" ")[1], (err, response, info) => {
         err
           ? res.status(500).send(err)
-          : response
-          ? res.status(200).json(info.message)
-          : res.status(401).json(info.message);
+          : !response
+          ? res.status(401).json(info)
+          : res.status(200).json(info);
       });
 }

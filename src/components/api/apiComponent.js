@@ -1,7 +1,7 @@
 import { setOptions, api_routes } from "./config";
 
-const userApi = api_routes["users"];
-const todoApi = api_routes["todos"];
+const todoApi = api_routes[1]["todos"];
+const userApi = api_routes[2]["users"];
 
 // Collection ops api calls
 
@@ -32,7 +32,7 @@ export async function addUsers(dataList = [], callback = Function()) {
   try {
     const response = await fetch(
       `${userApi}`,
-      setOptions({ method: "POST", body: dataList })
+      setOptions({ method: "POST", body: JSON.stringify(dataList) })
     );
     const data = await response.json();
     return callback(null, data);
@@ -45,7 +45,7 @@ export async function addTodos(dataList = [], callback = Function()) {
   try {
     const response = await fetch(
       `${todoApi}`,
-      setOptions({ method: "POST", body: dataList })
+      setOptions({ method: "POST", body: JSON.stringify(dataList) })
     );
     const data = await response.json();
     return callback(null, data);
@@ -88,7 +88,7 @@ export async function updateUserById(
       `${userApi}/${id}`,
       setOptions({
         method: "PUT",
-        body: userUpdates
+        body: JSON.stringify(userUpdates)
       })
     );
     const data = await response.json();
@@ -108,7 +108,7 @@ export async function updateTodoById(
       `${todoApi}/${id}`,
       setOptions({
         method: "PUT",
-        body: todoUpdates
+        body: JSON.stringify(todoUpdates)
       })
     );
     const data = await response.json();
