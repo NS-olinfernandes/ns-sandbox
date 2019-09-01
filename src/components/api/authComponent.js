@@ -6,7 +6,7 @@ const authApi = api_routes["auth"];
 export async function logotUser(callback = Function) {
   try {
     const response = await fetch(`${authApi}/logout`, setOptions());
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -17,7 +17,7 @@ export async function logotUser(callback = Function) {
 export async function isloggedin(callback = Function) {
   try {
     const response = await fetch(`${authApi}/isloggedin`, setOptions());
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -34,7 +34,7 @@ export async function loginUser(user = {}, callback = Function) {
         body: user
       })
     );
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -51,7 +51,7 @@ export async function register(user = {}, callback = Function) {
         body: user
       })
     );
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);

@@ -9,7 +9,7 @@ const todoApi = api_routes["todos"];
 export async function getUsers(callback = Function()) {
   try {
     const response = await fetch(`${userApi}`, setOptions());
-    const dataList = response.json();
+    const dataList = await response.json();
     return callback(null, dataList);
   } catch (error) {
     console.log(error);
@@ -20,7 +20,7 @@ export async function getUsers(callback = Function()) {
 export async function getTodos(callback = Function()) {
   try {
     const response = await fetch(`${todoApi}`, setOptions());
-    const dataList = response.json();
+    const dataList = await response.json();
     return callback(null, dataList);
   } catch (error) {
     return callback(error);
@@ -34,7 +34,7 @@ export async function addUsers(dataList = [], callback = Function()) {
       `${userApi}`,
       setOptions({ method: "POST", body: dataList })
     );
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -47,7 +47,7 @@ export async function addTodos(dataList = [], callback = Function()) {
       `${todoApi}`,
       setOptions({ method: "POST", body: dataList })
     );
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -60,7 +60,7 @@ export async function addTodos(dataList = [], callback = Function()) {
 export async function getUserById(id = String(), callback = Function()) {
   try {
     const response = await fetch(`${userApi}/${id}`, setOptions());
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -70,7 +70,7 @@ export async function getUserById(id = String(), callback = Function()) {
 export async function getTodoById(id = String(), callback = Function()) {
   try {
     const response = await fetch(`${todoApi}/${id}`, setOptions());
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -91,7 +91,7 @@ export async function updateUserById(
         body: userUpdates
       })
     );
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -111,7 +111,7 @@ export async function updateTodoById(
         body: todoUpdates
       })
     );
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -125,7 +125,7 @@ export async function deleteUserById(id = String(), callback = Function()) {
       `${userApi}/${id}`,
       setOptions({ method: "DELETE" })
     );
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
@@ -138,7 +138,7 @@ export async function deleteTodoById(id = String(), callback = Function()) {
       `${todoApi}/${id}`,
       setOptions({ method: "DELETE" })
     );
-    const data = response.json();
+    const data = await response.json();
     return callback(null, data);
   } catch (error) {
     return callback(error);
