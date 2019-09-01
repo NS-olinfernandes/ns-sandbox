@@ -1,19 +1,15 @@
-import { User } from "../_config";
+import { logoutUser } from "../_config";
 
 // Logout user - GET api response
 export async function get(req, res) {
-  const { authorization } = req.headers;
-  if (authorization !== undefined && authorization.token !== "") {
-    const token = authorization.split(" ")[1];
-    try {
-      const log = await User.update(
-        { accessToken: token },
-        { accessToken: "" }
-      );
-      return res.status(200).json(log);
-    } catch (error) {
-      return res.status(500).send(error);
-    }
-  }
-  res.status(400).json({ message: "Missing Token" });
+  const { headers: authorization = null } = req;
+  !authorization
+    ? res.status(400).json({ message: "Missing authorization header" })
+    : logoutUser(authorization.split(" ")[1], (err, response, info) => {
+        err
+          ? res.status(500).send(err)
+          : response
+          ? res.status(200).json(info.message)
+          : res.status(401).json(info.message);
+      });
 }
