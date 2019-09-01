@@ -40,6 +40,7 @@
     isLoggedIn((err, data) => {
       if (err) return console.warn(err);
       localStorage.setItem("token", JSON.stringify(data.token));
+      console.info(`Access token verified and ${data.email} logged in`);
     });
   }
 
