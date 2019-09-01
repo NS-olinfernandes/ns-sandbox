@@ -60,7 +60,7 @@ export function registerUser(newUser = Object(), callback = Function()) {
 }
 
 // Login User - DB query & callback
-export async function authenticateUser(
+export function authenticateUser(
   { email = String(), password = String() },
   callback = Function()
 ) {
@@ -105,10 +105,7 @@ export async function authenticateUser(
 }
 
 // Validate Token - Decrypt token & check DB for user
-export async function authenticateToken(
-  token = String(),
-  callback = Function()
-) {
+export function authenticateToken(token = String(), callback = Function()) {
   token === ""
     ? callback(null, false, {
         message: "Invalid token"
@@ -139,7 +136,7 @@ export async function authenticateToken(
 }
 
 // Logout User - DB query & callback
-export async function logoutUser(token = String(), callback = Function()) {
+export function logoutUser(token = String(), callback = Function()) {
   token === ""
     ? callback(null, false, {
         message: "Empty token"
@@ -169,7 +166,7 @@ export async function logoutUser(token = String(), callback = Function()) {
 // Collection Operations - DB query & callback
 export const collectionOps = {
   // GET document list from collection database.
-  getList: async (db = String(), callback = Function()) => {
+  getList: (db = String(), callback = Function()) => {
     switch (db) {
       case "users":
         return User.find((err, dataList) => {
@@ -202,7 +199,7 @@ export const collectionOps = {
     }
   },
   // Add new document list to collection database.
-  addList: async (db = String(), lists = Array(), callback = Function()) => {
+  addList: (db = String(), lists = Array(), callback = Function()) => {
     if (!Array.isArray(lists) || lists.length === 0)
       return callback(null, false, {
         message: "Invalid/Empty list provided"
@@ -265,7 +262,7 @@ export const collectionOps = {
 // Document Operations - DB query & callback
 export const documentOps = {
   // GET document by id from collection database.
-  getDoc: async (db = String(), id = String(), callback = Function()) => {
+  getDoc: (db = String(), id = String(), callback = Function()) => {
     switch (db) {
       case "users":
         return User.findById(id, (err, user) => {
@@ -298,7 +295,7 @@ export const documentOps = {
     }
   },
   // Update document by id with new data and save to collection database.
-  updateDoc: async (
+  updateDoc: (
     db = String(),
     id = String(),
     data = Object(),
@@ -336,7 +333,7 @@ export const documentOps = {
     }
   },
   // Delete document by id from collection database.
-  deleteDoc: async (db = String(), id = String(), callback = Function()) => {
+  deleteDoc: (db = String(), id = String(), callback = Function()) => {
     switch (db) {
       case "users":
         return User.remove({ _id: id }, err => {

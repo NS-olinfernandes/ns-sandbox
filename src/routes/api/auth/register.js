@@ -1,7 +1,7 @@
 import { registerUser } from "../_config";
 
 // Register new User - POST api response
-export async function post(req, res) {
+export function post(req, res) {
   const { body = null } = req;
   if (body === null) return res.status(400).json({ message: "Invalid input" });
   registerUser(body, (err, user, info) => {

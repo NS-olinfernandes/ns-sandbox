@@ -2,7 +2,7 @@ import { collectionOps, authenticateToken } from "../_config";
 const db = "users";
 
 // GET users list api action & response
-export async function get(req, res) {
+export function get(req, res) {
   const { authorization = null } = req.headers;
   authorization === null
     ? res.status(401).json("Invalid header")
@@ -13,7 +13,7 @@ export async function get(req, res) {
           ? res.status(401).json(info.message)
           : collectionOps.getList(db, (error, data, info) => {
               error
-                ? res.status(500).send(err)
+                ? res.status(500).send(error)
                 : !data
                 ? res.status(400).json(info.message)
                 : res.status(200).json(data);
@@ -22,7 +22,7 @@ export async function get(req, res) {
 }
 
 // POST user list api action & response
-export async function post(req, res) {
+export function post(req, res) {
   const { authorization = null } = req.headers;
   const { body = null } = req;
   authorization === null || body === null
@@ -36,7 +36,7 @@ export async function post(req, res) {
           ? res.status(400).json("Invalid datalist")
           : collectionOps.addList(db, body, (error, datalist, info) =>
               error
-                ? res.status(500).send(err)
+                ? res.status(500).send(error)
                 : !datalist
                 ? res.status(202).json(info.message)
                 : res.status(201).json(dataList)

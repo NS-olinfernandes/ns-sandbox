@@ -1,7 +1,7 @@
 import { authenticateToken, documentOps } from "../_config";
 const db = "todos";
 
-export async function get(req, res) {
+export function get(req, res) {
   const { authorization = null } = req.headers;
   const { slug = null } = req.params;
   authorization === null || slug === null
@@ -21,7 +21,7 @@ export async function get(req, res) {
       });
 }
 
-export async function put(req, res) {
+export function put(req, res) {
   const { authorization = null } = req.headers;
   const { slug = null } = req.params;
   const { body = null } = req;
@@ -42,7 +42,7 @@ export async function put(req, res) {
       });
 }
 
-export async function del(req, res) {
+export function del(req, res) {
   const { authorization = null } = req.headers;
   const { slug = null } = req.params;
   authorization === null || slug === null
