@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 // const db_url = "mongodb/Sanbox";
-// const db_url = "ns-mongodb1/Sandbox";
-const db_url = "localhost/Sandbox";
+const db_url = "ns-mongodb1/Sandbox";
+// const db_url = "localhost/Sandbox";
 // const db_url = "172.18.0.2/Sandbox";
 
 // MongoDB connection.
