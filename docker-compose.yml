@@ -8,3 +8,8 @@ services:
       NODE_ENV: production
     ports:
       - 3000:3000
+    links:
+      - ns-mongodb1
+  ns-mongodb1:
+    image: mongo
+    

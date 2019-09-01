@@ -2,9 +2,10 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// const db_url = "mongodb:27017/Sanbox";
-const db_url = "localhost:27017/Sandbox";
-// const db_url = "172.18.0.2:27017/Sandbox";
+// const db_url = "mongodb/Sanbox";
+// const db_url = 'ns-mongodb1/Sandbox';
+const db_url = "localhost/Sandbox";
+// const db_url = "172.18.0.2/Sandbox";
 
 mongoose.connect(`mongodb://${db_url}`, {
   useCreateIndex: true,
