@@ -6,54 +6,57 @@ import { Todo, User } from "./_models";
 // Secret for token signing & password hashing.
 const secret = "7FGT5VQ2BU";
 // Generate new JWT
-const generateToken = (payload = Object()) => {
-  const token = jwt.sign(payload, secret);
-  return token;
-};
+const generateToken = (payload = Object()) => jwt.sign(payload, secret);
 // Verify existing JWT
 const verifyToken = (token = String(), callback = Function()) =>
   jwt.verify(token, secret, callback);
 // Generate password hash
-const hashPassword = (password = String()) => bcrypt.hashSync(password, secret);
+const hashPassword = (password = String()) => bcrypt.hashSync(password, 8);
 
 // Register a new user - DB query & callback
-export async function registerUser(newUser = {}, callback = Function()) {
+export function registerUser(newUser = Object(), callback = Function()) {
   const { firstName = "", lastName = "", email = "", password = "" } = newUser;
   email === "" || password === ""
     ? callback(null, false, {
         message: "Missing email and/or password"
       })
-    : () => {
-        const hashedPassword = hashPassword(password);
-        return User.findOne({ email }, (err, user) => {
-          err
-            ? callback(err)
-            : user
-            ? callback(null, false, {
-                message: `${email} already exists in database`
-              })
-            : () => {
-                let registeredUser = new User({
-                  name: {
-                    firstName,
-                    lastName
-                  },
-                  email,
-                  password: hashedPassword,
-                  accessToken: generateToken({ email, hashedPassword })
-                });
-                return registeredUser.save((err, data) => {
-                  err
-                    ? callback(err)
-                    : !data
-                    ? callback(null, false, { message: "Something went wrong" })
-                    : callback(null, data, {
-                        message: `New user registered \n${registeredUser.email}`
-                      });
-                });
-              };
+    : User.findOne({ email }, (err, user) => {
+        if (err) return callback(err);
+        if (user)
+          return callback(null, false, {
+            message: `${email} already exists in database`
+          });
+        let registeredUser = new User({
+          name: {
+            firstName,
+            lastName
+          },
+          email,
+          password: hashPassword(password),
+          accessToken: generateToken({
+            email,
+            password: hashPassword(password)
+          })
         });
-      };
+        registeredUser.save((error, data) => {
+          error
+            ? callback(error)
+            : !data
+            ? callback(null, false, { message: "Something went wrong" })
+            : callback(
+                null,
+                {
+                  firstName: data.name.firstName,
+                  lastName: data.name.lastName,
+                  email: data.email,
+                  token: data.accessToken
+                },
+                {
+                  message: `New user registered \n${registeredUser.email}`
+                }
+              );
+        });
+      });
 }
 
 // Login User - DB query & callback
@@ -65,37 +68,40 @@ export async function authenticateUser(
     ? callback(null, false, {
         message: "Missing email and/or password"
       })
-    : () => {
+    : User.findOne({ email }, (err, user) => {
         const hashedPassword = hashPassword(password);
         const token = generateToken({ email, password: hashedPassword });
-        return User.findOne({ email }, (err, user) => {
-          err
-            ? callback(err)
-            : !user
-            ? callback(null, false, {
-                message: "Incorrect email"
-              })
-            : !bcrypt.compareSync(password, user.password)
-            ? callback(null, false, {
-                message: "Password mismatch"
-              })
-            : User.updateOne(
-                { email },
-                { accessToken: token },
-                (error, response) => {
-                  error
-                    ? callback(error)
-                    : response.ok
-                    ? callback(null, user, {
+        err
+          ? callback(err)
+          : !user
+          ? callback(null, false, {
+              message: "Incorrect email"
+            })
+          : !bcrypt.compareSync(password, user.password)
+          ? callback(null, false, {
+              message: "Incorrect password"
+            })
+          : User.updateOne(
+              { email },
+              { accessToken: token },
+              (error, response) => {
+                error
+                  ? callback(error)
+                  : response.ok
+                  ? callback(
+                      null,
+                      { token },
+                      {
                         message: "Logged in successfully"
-                      })
-                    : callback(null, false, {
-                        message: "Something went wrong"
-                      });
-                }
-              );
-        });
-      };
+                      }
+                    )
+                  : callback(null, false, {
+                      message: "Something went wrong",
+                      response
+                    });
+              }
+            );
+      });
 }
 
 // Validate Token - Decrypt token & check DB for user
@@ -108,12 +114,13 @@ export async function authenticateToken(
         message: "Invalid token"
       })
     : verifyToken(token, (err, payload) => {
+        const { email } = payload;
         err
           ? callback(err)
-          : User.findOne({ email: payload.email }, (error, user) => {
+          : User.findOne({ email, accessToken: token }, (error, user) => {
               error
-                ? callback(err)
-                : !user
+                ? callback(error)
+                : !user || user === null
                 ? callback(null, false, {
                     message: `No user found \n${email}`
                   })
@@ -168,7 +175,7 @@ export const collectionOps = {
         return User.find((err, dataList) => {
           err
             ? callback(err)
-            : !dataList
+            : dataList.length === 0
             ? callback(null, false, {
                 message: "No items in database"
               })
@@ -180,7 +187,7 @@ export const collectionOps = {
         return Todo.find((err, dataList) => {
           err
             ? callback(err)
-            : !dataList
+            : dataList.length === 0
             ? callback(null, false, {
                 message: "No items in database"
               })

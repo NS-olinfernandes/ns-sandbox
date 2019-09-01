@@ -38,8 +38,8 @@ export async function post(req, res) {
               error
                 ? res.status(500).send(err)
                 : !datalist
-                ? res.status(200).json(info.message)
-                : res.status(200).json(dataList)
+                ? res.status(202).json(info.message)
+                : res.status(201).json(dataList)
             )
       );
 }
