@@ -82,72 +82,41 @@ const verifyToken = (token = String(), callback = Function()) =>
 // Generate password hash
 const hashPassword = (password = String()) => bcrypt.hashSync(password, secret);
 
-// Validate Token - Devrypt token & check DB for user
-export async function authenticateToken(
-  token = String(),
-  callback = Function()
-) {
-  token === ""
-    ? callback(null, false, {
-        message: "Invalid token"
-      })
-    : verifyToken(token, (err, payload) => {
-        if (err) return callback(err);
-        User.findOne(
-          {
-            email: payload.email
-          },
-          (err, user) => {
-            if (err) return callback(err);
-            if (!user)
-              return callback(null, false, {
-                message: "No User found from token"
-              });
-            const { name, email, accessToken } = user;
-            callback(
-              null,
-              { name, email, accessToken },
-              {
-                message: "Token verified!"
-              }
-            );
-          }
-        );
-      });
-}
-
 // Register a new user - DB query & callback
 export async function registerUser(newUser = {}, callback = Function()) {
-  const { firstName, lastName, email, password } = newUser;
-  if (email === undefined || password === undefined)
+  const { firstName = "", lastName = "", email = "", password = "" } = newUser;
+  if (email === "" || password === "")
     return callback(null, false, {
       message: "Email or password missing!"
     });
   const hashedPassword = hashPassword(password);
   User.findOne({ email }, (err, user) => {
-    if (err) return callback(err);
-    if (!user) {
-      let registeredUser = new User({
-        name: {
-          firstName,
-          lastName
-        },
-        email,
-        password: hashedPassword,
-        accessToken: generateToken({ email, password })
-      });
-      registeredUser.save((err, data) => {
-        if (err) return callback(err);
-        if (!data)
-          return callback(null, false, { message: "Something went wrong" });
-        callback(null, data, {
-          message: `New user registered! ${registeredUser.email}`
-        });
-      });
-    }
-    callback(null, false, {
-      message: "Email already exists!"
-    });
+    err
+      ? callback(err)
+      : user
+      ? callback(null, false, {
+          message: `${email} already exists in database`
+        })
+      : () => {
+          let registeredUser = new User({
+            name: {
+              firstName,
+              lastName
+            },
+            email,
+            password: hashedPassword,
+            accessToken: generateToken({ email, hashedPassword })
+          });
+          return rregisteredUser.save((err, data) => {
+            err
+              ? callback(err)
+              : !data
+              ? callback(null, false, { message: "Something went wrong" })
+              : callback(null, data, {
+                  message: `New user registered \n${registeredUser.email}`
+                });
+          });
+        };
   });
 }
 
@@ -185,211 +154,259 @@ export async function authenticateUser(
   });
 }
 
+// Validate Token - Decrypt token & check DB for user
+export async function authenticateToken(
+  token = String(),
+  callback = Function()
+) {
+  token === ""
+    ? callback(null, false, {
+        message: "Invalid token"
+      })
+    : verifyToken(token, (err, payload) => {
+        err
+          ? callback(err)
+          : User.findOne({ email: payload.email }, (error, user) => {
+              error
+                ? callback(err)
+                : !user
+                ? callback(null, false, {
+                    message: `No user found \n${email}`
+                  })
+                : callback(
+                    null,
+                    {
+                      firstName: user.name.firstName,
+                      lastName: user.name.lastName,
+                      email: user.email,
+                      token: user.accessToken
+                    },
+                    { message: "Token verified!" }
+                  );
+            });
+      });
+}
+
 // Logout User - DB query & callback
 export async function logoutUser(token = String(), callback = Function()) {
-  if (token === "")
-    return callback(null, false, {
-      message: "Invalid Token"
-    });
-  User.updateOne(
-    { accessToken: token },
-    { accessToken: "" },
-    (err, response) => {
-      if (err) return callback(err);
-      if (response.ok)
-        return callback(null, response, {
-          message: "Logged out successfully"
-        });
-      callback(null, false, {
-        message: "Something went wrong"
+  token === ""
+    ? callback(null, false, {
+        message: "Empty token"
+      })
+    : verifyToken(token, (err, payload) => {
+        err
+          ? callback(err)
+          : User.updateOne(
+              { email: payload.email },
+              { accessToken: "" },
+              (error, response) => {
+                error
+                  ? callback(error)
+                  : !response.ok
+                  ? callback(null, false, {
+                      message: "Something went wrong",
+                      response
+                    })
+                  : callback(null, response, {
+                      message: `${payload.email} Logged out`
+                    });
+              }
+            );
       });
-    }
-  );
 }
 
 // Collection Operations - DB query & callback
 export const collectionOps = {
   // GET document list from collection database.
   getList: async (db = String(), callback = Function()) => {
-    if (/users/.test(db)) {
-      return User.find((err, dataList) => {
-        if (err) return callback(err);
-        if (!dataList)
-          return callback(null, false, {
-            message: "No items in database"
-          });
-        callback(null, dataList, {
-          message: "Data list found"
+    switch (db) {
+      case /[uU]sers/:
+        return User.find((err, dataList) => {
+          err
+            ? callback(err)
+            : !dataList
+            ? callback(null, false, {
+                message: "No items in database"
+              })
+            : callback(null, dataList, {
+                message: "Data list found"
+              });
         });
-      });
-    }
-    if (/todos/.test(db)) {
-      return Todo.find((err, dataList) => {
-        if (err) return callback(err);
-        if (!dataList)
-          return callback(null, false, {
-            message: "No items in database"
-          });
-        callback(null, dataList, {
-          message: "Data list found"
+      case /[tT]odos/:
+        return Todo.find((err, dataList) => {
+          err
+            ? callback(err)
+            : !dataList
+            ? callback(null, false, {
+                message: "No items in database"
+              })
+            : callback(null, dataList, {
+                message: "Data list found"
+              });
         });
-      });
+      default:
+        return callback(null, false, {
+          message: "Invalid Database"
+        });
     }
-    callback(null, false, {
-      message: "Invalid Database"
-    });
   },
   // Add new document list to collection database.
   addList: async (db = String(), lists = Array(), callback = Function()) => {
-    console.log(typeof lists);
-    if (/users/.test(db)) {
-      if (!Array.isArray(lists) || lists.length === 0)
-        return callback(null, false, {
-          message: "Invalid list provided"
-        });
-      const dataList = lists.map((list, i) => {
-        const { firstName, lastName, email, password } = list;
-        const newUser = new User({
-          name: {
-            firstName,
-            lastName
-          },
-          email,
-          password: hashPassword(password)
-        });
-        return newUser.save((err, user) => {
-          if (err) return { invalid: i, error: err };
-          return user;
-        });
+    if (!Array.isArray(lists) || lists.length === 0)
+      return callback(null, false, {
+        message: "Invalid/Empty list provided"
       });
-      if (dataList.filter(data => data.invalid === undefined).length > 0) {
-        return callback(null, false, {
-          message: "Encountered Invalid Inputs",
-          request: list,
-          response: dataList
+    let dataList;
+    switch (db) {
+      case /[uU]sers/:
+        dataList = lists.map((list, i) => {
+          const { firstName, lastName, email, password } = list;
+          const newUser = new User({
+            name: {
+              firstName,
+              lastName
+            },
+            email,
+            password: hashPassword(password)
+          });
+          return newUser.save((err, user) =>
+            err ? { invalid: i, error: err } : user
+          );
         });
-      }
-      callback(null, dataList, {
-        message: "New entries added to Database"
-      });
+        dataList.filter(data => data.invalid === undefined).length > 0
+          ? callback(null, false, {
+              message: "Encountered Invalid Inputs",
+              request: list,
+              response: dataList
+            })
+          : callback(null, dataList, {
+              message: "New entries added to Database"
+            });
+      case /[tT]odos/:
+        dataList = lists.map((list, i) => {
+          const { title, body, author } = list;
+          const newTodo = new Todo({
+            title,
+            body,
+            created_by: author
+          });
+          return newTodo.save((err, todo) =>
+            err ? { invalid: i, error: err } : todo
+          );
+        });
+        dataList.filter(data => data.invalid === undefined).length > 0
+          ? callback(null, false, {
+              message: "Encountered Invalid Inputs",
+              request: list,
+              response: dataList
+            })
+          : callback(null, dataList, {
+              message: "New entries added to Database"
+            });
+      default:
+        return callback(null, false, {
+          message: "Invalid Database"
+        });
     }
-    if (/todos/.test(db)) {
-      const dataList = lists.map((list, i) => {
-        const { title, body, author } = list;
-        const newTodo = new Todo({
-          title,
-          body,
-          created_by: author
-        });
-        return newTodo.save((err, todo) => {
-          if (err) return { invalid: i, error: err };
-          return todo;
-        });
-      });
-      if (dataList.filter(data => data.invalid === undefined).length > 0) {
-        return callback(null, false, {
-          message: "Encountered Invalid Inputs",
-          request: list,
-          response: dataList
-        });
-      }
-      callback(null, dataList, {
-        message: "New entries added to Database"
-      });
-    }
-    callback(null, false, {
-      message: "Invalid Database"
-    });
   }
 };
 
 // Document Operations - DB query & callback
 export const documentOps = {
   // GET document by id from collection database.
-  get: async (db = String(), id = String(), callback = Function()) => {
-    if (/[uU]sers/.test(db)) {
-      return User.findById(id, (err, user) => {
-        if (err) return callback(err);
-        if (!user)
-          return callback(null, false, {
-            message: "User not found"
-          });
-        callback(null, user, {
-          message: "User found"
+  getDoc: async (db = String(), id = String(), callback = Function()) => {
+    switch (db) {
+      case /[uU]sers/:
+        return User.findById(id, (err, user) => {
+          err
+            ? callback(err)
+            : !user
+            ? callback(null, false, {
+                message: "User not found"
+              })
+            : callback(null, user, {
+                message: "User found"
+              });
         });
-      });
-    }
-    if (/[tT]odos/.test(db)) {
-      return Todo.findOne({ _id: id }, (err, todo) => {
-        if (err) return callback(err);
-        if (!todo)
-          return callback(null, false, {
-            message: "Todo not found"
-          });
-        callback(null, todo, {
-          message: "Todo found"
+      case /[tT]odos/:
+        return Todo.findOne({ _id: id }, (err, todo) => {
+          err
+            ? callback(err)
+            : !todo
+            ? callback(null, false, {
+                message: "Todo not found"
+              })
+            : callback(null, todo, {
+                message: "Todo found"
+              });
         });
-      });
+      default:
+        return callback(null, false, {
+          message: "Invalid Database"
+        });
     }
-    callback(null, false, {
-      message: "Invalid Database"
-    });
   },
   // Update document by id with new data and save to collection database.
-  put: async (
+  updateDoc: async (
     db = String(),
     id = String(),
     data = Object(),
     callback = Function()
   ) => {
-    if (/users/.test(db)) {
-      return User.findOneAndUpdate({ _id: id }, { ...data }, (err, user) => {
-        if (err) return callback(err);
-        if (!user)
-          return callback(null, false, {
-            message: "User not found"
-          });
-        callback(null, user, {
-          message: "User updated"
+    switch (db) {
+      case /[uU]sers/:
+        return User.updateOne({ _id: id }, { ...data }, (err, user) => {
+          err
+            ? callback(err)
+            : !user
+            ? callback(null, false, {
+                message: "User not found"
+              })
+            : callback(null, user, {
+                message: "User updated"
+              });
         });
-      });
-    }
-    if (/todos/.test(db)) {
-      return Todo.findOneAndUpdate({ _id: id }, { ...data }, (err, todo) => {
-        if (err) return callback(err);
-        if (!todo)
-          return callback(null, false, {
-            message: "Todo not found"
-          });
-        callback(null, todo, {
-          message: "Todo updated"
+      case /[tT]odo/:
+        return Todo.updateOne({ _id: id }, { ...data }, (err, todo) => {
+          err
+            ? callback(err)
+            : !todo
+            ? callback(null, false, {
+                message: "Todo not found"
+              })
+            : callback(null, todo, {
+                message: "Todo updated"
+              });
         });
-      });
+      default:
+        return callback(null, false, {
+          message: "Invalid Database"
+        });
     }
-    callback(null, false, {
-      message: "Invalid Database"
-    });
   },
   // Delete document by id from collection database.
-  del: async (db = String(), id = String(), callback = Function()) => {
-    if (/users/.test(db)) {
-      return User.remove({ _id: id }, err => {
-        if (err) return callback(err);
-        callback(null, id, {
-          message: `User id removed: ${id}`
+  deleteDoc: async (db = String(), id = String(), callback = Function()) => {
+    switch (db) {
+      case /[uU]sers/:
+        return User.remove({ _id: id }, err => {
+          err
+            ? callback(err)
+            : callback(null, id, {
+                message: `User id removed:\n ${id}`
+              });
         });
-      });
-    }
-    if (/todos/.test(db)) {
-      return Todo.remove({ _id: id }, err => {
-        if (err) return callback(err);
-        callback(null, id, {
-          message: `Todo id removed: ${id}`
+      case /[tT]odos/:
+        return Todo.remove({ _id: id }, err => {
+          err
+            ? callback(err)
+            : callback(null, id, {
+                message: `Todo id removed:\n ${id}`
+              });
         });
-      });
+      default:
+        return callback(null, false, {
+          message: "Invalid Database"
+        });
     }
-    callback(null, false, {
-      message: "Invalid Database"
-    });
   }
 };
