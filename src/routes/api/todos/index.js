@@ -1,34 +1,45 @@
-import { collectionOps, authenticateToken } from '../_config';
-const db = 'todos';
+import { collectionOps, authenticateToken } from "../_config";
+const db = "todos";
 
+// GET users list api action & response
 export async function get(req, res) {
-  if (req.headers.authorization === undefined)
-    return res.status(401).json('Invalid Token');
-  const token = req.headers.authorization.split(' ')[1];
-  authenticateToken(token, (err, payload, info) => {
-    if (err) return res.status(500).json(err);
-    if (!payload) return res.status(401).json(info.message);
-    collectionOps.getList(db, (err, data, info) => {
-      if (err) return res.status(500).json(err);
-      if (!data) return res.status(401).json(info.message);
-      res.status(200).json(data);
-    });
-  });
+  const { authorization = null } = req.headers;
+  authorization === null
+    ? res.status(401).json("Invalid header")
+    : authenticateToken(authorization.split(" ")[1], (err, payload, info) => {
+        err
+          ? res.status(500).send(err)
+          : !payload
+          ? res.status(401).json(info.message)
+          : collectionOps.getList(db, (error, data, info) => {
+              error
+                ? res.status(500).send(err)
+                : !data
+                ? res.status(400).json(info.message)
+                : res.status(200).json(data);
+            });
+      });
 }
 
+// POST user list api action & response
 export async function post(req, res) {
-  if (req.headers.authorization === undefined)
-    return res.status(401).json('Token missing...');
-  const token = req.headers.authorization.split(' ')[1];
-  authenticateToken(token, (err, payload, info) => {
-    if (err) return res.status(500).json(err);
-    if (!payload) return res.status(401).json(info.message);
-    if (!Array.isArray(req.body) || req.body.length === 0)
-      return res.status(401).json('Invalid Input');
-    collectionOps.addList(db, req.body, (err, data, info) => {
-      if (err) return res.status(500).json(err);
-      if (!data) return res.status(401).json(info);
-      res.status(200).json(data);
-    });
-  });
+  const { authorization = null } = req.headers;
+  const { body = null } = req;
+  authorization === null || body === null
+    ? res.status(401).json("Missing header and/or datalist")
+    : authenticateToken(authorization.split(" ")[1], (err, payload, info) =>
+        err
+          ? res.status(500).send(err)
+          : !payload
+          ? res.status(401).json(info.message)
+          : !Array.isArray(body) || body.length === 0
+          ? res.status(400).json("Invalid datalist")
+          : collectionOps.addList(db, body, (error, datalist, info) =>
+              error
+                ? res.status(500).send(err)
+                : !datalist
+                ? res.status(200).json(info.message)
+                : res.status(200).json(dataList)
+            )
+      );
 }

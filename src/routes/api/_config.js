@@ -1,76 +1,10 @@
-import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// const db_url = "mongodb/Sanbox";
-// const db_url = "ns-mongodb1/Sandbox";
-const db_url = "localhost/Sandbox";
-// const db_url = "172.18.0.2/Sandbox";
-
-// MongoDB connection.
-mongoose.connect(`mongodb://${db_url}`, {
-  useCreateIndex: true,
-  useNewUrlParser: true
-});
-mongoose.connection.on("connected", () =>
-  console.log("Connected to Sanbox Database")
-);
-
-const Schema = mongoose.Schema;
-// Todo model Schema
-const todoSchema = new Schema({
-  title: {
-    type: String,
-    required: true,
-    index: true
-  },
-  body: {
-    type: String,
-    default: "",
-    required: true
-  },
-  created_at: {
-    type: Date,
-    default: Date.now()
-  },
-  created_by: {
-    type: String,
-    required: true,
-    index: true
-  }
-});
-// User model Schema
-const userSchema = new Schema({
-  name: {
-    firstName: {
-      type: String,
-      default: ""
-    },
-    lastName: {
-      type: String,
-      default: ""
-    }
-  },
-  email: {
-    type: String,
-    required: true,
-    index: true,
-    unique: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  accessToken: {
-    type: String
-  }
-});
-
-export const Todo = mongoose.model("Todo", todoSchema);
-export const User = mongoose.model("User", userSchema);
+import { Todo, User } from "./_models";
 
 // Secret for token signing & password hashing.
-export const secret = "7FGT5VQ2BU";
+const secret = "7FGT5VQ2BU";
 // Generate new JWT
 const generateToken = (payload = Object()) => {
   const token = jwt.sign(payload, secret);
@@ -85,39 +19,41 @@ const hashPassword = (password = String()) => bcrypt.hashSync(password, secret);
 // Register a new user - DB query & callback
 export async function registerUser(newUser = {}, callback = Function()) {
   const { firstName = "", lastName = "", email = "", password = "" } = newUser;
-  if (email === "" || password === "")
-    return callback(null, false, {
-      message: "Email or password missing!"
-    });
-  const hashedPassword = hashPassword(password);
-  User.findOne({ email }, (err, user) => {
-    err
-      ? callback(err)
-      : user
-      ? callback(null, false, {
-          message: `${email} already exists in database`
-        })
-      : () => {
-          let registeredUser = new User({
-            name: {
-              firstName,
-              lastName
-            },
-            email,
-            password: hashedPassword,
-            accessToken: generateToken({ email, hashedPassword })
-          });
-          return rregisteredUser.save((err, data) => {
-            err
-              ? callback(err)
-              : !data
-              ? callback(null, false, { message: "Something went wrong" })
-              : callback(null, data, {
-                  message: `New user registered \n${registeredUser.email}`
+  email === "" || password === ""
+    ? callback(null, false, {
+        message: "Missing email and/or password"
+      })
+    : () => {
+        const hashedPassword = hashPassword(password);
+        return User.findOne({ email }, (err, user) => {
+          err
+            ? callback(err)
+            : user
+            ? callback(null, false, {
+                message: `${email} already exists in database`
+              })
+            : () => {
+                let registeredUser = new User({
+                  name: {
+                    firstName,
+                    lastName
+                  },
+                  email,
+                  password: hashedPassword,
+                  accessToken: generateToken({ email, hashedPassword })
                 });
-          });
-        };
-  });
+                return registeredUser.save((err, data) => {
+                  err
+                    ? callback(err)
+                    : !data
+                    ? callback(null, false, { message: "Something went wrong" })
+                    : callback(null, data, {
+                        message: `New user registered \n${registeredUser.email}`
+                      });
+                });
+              };
+        });
+      };
 }
 
 // Login User - DB query & callback
@@ -125,33 +61,41 @@ export async function authenticateUser(
   { email = String(), password = String() },
   callback = Function()
 ) {
-  if (email === "" || password === "")
-    return callback(null, false, {
-      message: "Email and/or password missing"
-    });
-  const hashedPassword = hashPassword(password);
-  const token = generateToken({ email, password: hashedPassword });
-  User.findOne({ email }, (err, user) => {
-    if (err) return callback(err);
-    if (!user)
-      return callback(null, false, {
-        message: "Incorrect email"
-      });
-    if (!bcrypt.compareSync(password, user.password))
-      return callback(null, false, {
-        message: "Password mismatch"
-      });
-    User.updateOne({ email }, { accessToken: token }, (err, response) => {
-      if (err) return callback(err);
-      if (response.ok)
-        return callback(null, user, {
-          message: "Logged in successfully"
+  email === "" || password === ""
+    ? callback(null, false, {
+        message: "Missing email and/or password"
+      })
+    : () => {
+        const hashedPassword = hashPassword(password);
+        const token = generateToken({ email, password: hashedPassword });
+        return User.findOne({ email }, (err, user) => {
+          err
+            ? callback(err)
+            : !user
+            ? callback(null, false, {
+                message: "Incorrect email"
+              })
+            : !bcrypt.compareSync(password, user.password)
+            ? callback(null, false, {
+                message: "Password mismatch"
+              })
+            : User.updateOne(
+                { email },
+                { accessToken: token },
+                (error, response) => {
+                  error
+                    ? callback(error)
+                    : response.ok
+                    ? callback(null, user, {
+                        message: "Logged in successfully"
+                      })
+                    : callback(null, false, {
+                        message: "Something went wrong"
+                      });
+                }
+              );
         });
-      callback(null, false, {
-        message: "Something went wrong"
-      });
-    });
-  });
+      };
 }
 
 // Validate Token - Decrypt token & check DB for user
@@ -258,7 +202,7 @@ export const collectionOps = {
       });
     let dataList;
     switch (db) {
-      case /[uU]sers/:
+      case "users":
         dataList = lists.map((list, i) => {
           const { firstName, lastName, email, password } = list;
           const newUser = new User({
@@ -282,7 +226,7 @@ export const collectionOps = {
           : callback(null, dataList, {
               message: "New entries added to Database"
             });
-      case /[tT]odos/:
+      case "todos":
         dataList = lists.map((list, i) => {
           const { title, body, author } = list;
           const newTodo = new Todo({
@@ -316,7 +260,7 @@ export const documentOps = {
   // GET document by id from collection database.
   getDoc: async (db = String(), id = String(), callback = Function()) => {
     switch (db) {
-      case /[uU]sers/:
+      case "users":
         return User.findById(id, (err, user) => {
           err
             ? callback(err)
@@ -328,7 +272,7 @@ export const documentOps = {
                 message: "User found"
               });
         });
-      case /[tT]odos/:
+      case "todos":
         return Todo.findOne({ _id: id }, (err, todo) => {
           err
             ? callback(err)
@@ -354,7 +298,7 @@ export const documentOps = {
     callback = Function()
   ) => {
     switch (db) {
-      case /[uU]sers/:
+      case "users":
         return User.updateOne({ _id: id }, { ...data }, (err, user) => {
           err
             ? callback(err)
@@ -366,7 +310,7 @@ export const documentOps = {
                 message: "User updated"
               });
         });
-      case /[tT]odo/:
+      case "todos":
         return Todo.updateOne({ _id: id }, { ...data }, (err, todo) => {
           err
             ? callback(err)
@@ -387,7 +331,7 @@ export const documentOps = {
   // Delete document by id from collection database.
   deleteDoc: async (db = String(), id = String(), callback = Function()) => {
     switch (db) {
-      case /[uU]sers/:
+      case "users":
         return User.remove({ _id: id }, err => {
           err
             ? callback(err)
@@ -395,7 +339,7 @@ export const documentOps = {
                 message: `User id removed:\n ${id}`
               });
         });
-      case /[tT]odos/:
+      case "todos":
         return Todo.remove({ _id: id }, err => {
           err
             ? callback(err)
