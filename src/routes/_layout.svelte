@@ -1,4 +1,5 @@
 <script>
+  import { setContext } from "svelte";
   export let segment;
 </script>
 
