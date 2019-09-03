@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { getContext, onMount } from "svelte";
   import Login from "../components/Login.svelte";
   import Register from "../components/Register.svelte";
   import { logoutUser, isLoggedIn } from "../components/api/authComponent";
@@ -21,7 +21,10 @@
   }
 
   onMount(() => {
-    if (localStorage.length > 0) {
+    if (
+      localStorage.length > 0 &&
+      !!JSON.parse(localStorage.getItem("token"))
+    ) {
       handleLoggedIn();
     }
 
