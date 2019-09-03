@@ -12,3 +12,5 @@ services:
       - ns-mongodb1
   ns-mongodb1:
     image: mongo
+    volumes:
+      - "./data:/data/db"

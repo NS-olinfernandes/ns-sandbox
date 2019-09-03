@@ -61,3 +61,5 @@
   <option value="vue">Vue</option>
 </select>
 <Login />
+<hr />
+<Register />
