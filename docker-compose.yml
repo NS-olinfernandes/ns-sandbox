@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.7'
 
 services:
   ns-sandbox:
@@ -12,5 +12,7 @@ services:
       - ns-mongodb1
   ns-mongodb1:
     image: mongo
-    #volumes:
-    #  - "./data:/data/db"
+    volumes:
+      - 'mongodata:/data/db'
+volumes:
+  mongodata:

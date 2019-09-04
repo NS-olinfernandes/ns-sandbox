@@ -23,7 +23,7 @@
   onMount(() => {
     if (
       localStorage.length > 0 &&
-      !!JSON.parse(localStorage.getItem("token"))
+      JSON.parse(localStorage.getItem("token") !== undefined)
     ) {
       handleLoggedIn();
     }
