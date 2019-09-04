@@ -5,8 +5,6 @@
   import { logoutUser, isLoggedIn } from "../components/api/authComponent";
 
   let framework;
-  const abortController = new AbortController();
-  const signal = abortController.signal;
 
   function handleFramework(e = Object()) {
     console.log(e.target.value);
@@ -15,7 +13,7 @@
   function handleLoggedIn() {
     isLoggedIn((err, data) => {
       if (err) return console.warn(err);
-      if (!data || data === undefined) return console.warn(`Access token invalid`);
+      if (!data || data.token === undefined) return console.warn(`Access token invalid`);
       localStorage.setItem("token", JSON.stringify(data.token));
       console.info(`Access token verified and ${data.email} logged in`);
     });
@@ -29,7 +27,6 @@
       handleLoggedIn();
     }
 
-    return abortController.abort;
   });
 </script>
 
