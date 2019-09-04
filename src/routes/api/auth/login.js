@@ -10,6 +10,6 @@ export function post(req, res) {
           ? res.status(500).send(err)
           : !user
           ? res.status(401).json(info)
-          : res.status(200).json({ message: info.message, token: user.token });
+          : res.status(200).json({ ...user, ...info });
       });
 }

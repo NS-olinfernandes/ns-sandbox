@@ -1,20 +1,6 @@
 <script>
-  import { registerUser } from "./api/authComponent";
-  let firstName = String();
-  let lastName = String();
-  let email = String();
-  let password = String();
-
-  function handleRegister(e = Object()) {
-    e.preventDefault();
-    registerUser({ firstName, lastName, email, password }, (err, data) => {
-      if (err) return console.warn(err);
-      const { message = "", token = "" } = data;
-      if (token !== "") localStorage.setItem("token", JSON.stringify(token));
-      console.info(message);
-      (firstName = ""), (lastName = ""), (email = ""), (password = "");
-    });
-  }
+  export let toggleRegister;
+  export let handleRegister;
 </script>
 
 <style>
@@ -52,7 +38,7 @@
         type="text"
         name="firstName"
         placeholder="Enter your first name"
-        bind:value={firstName} />
+      />
     </div>
     <div class="form-group">
       <label>Last Name</label>
@@ -60,7 +46,7 @@
         type="text"
         name="lastName"
         placeholder="Enter your last name"
-        bind:value={lastName} />
+      />
     </div>
     <div class="form-group">
       <label>Email</label>
@@ -68,7 +54,7 @@
         type="text"
         name="email"
         placeholder="Enter your email"
-        bind:value={email} />
+      />
     </div>
     <div class="form-group">
       <label>Password</label>
@@ -76,10 +62,11 @@
         type="password"
         name="password"
         placeholder="Enter your password"
-        bind:value={password} />
+      />
     </div>
     <div class="button-group">
       <button type="submit">Register</button>
     </div>
   </form>
+  <p>Already have an account? <a href='.' on:click={toggleRegister}>Login</a></p>
 </div>

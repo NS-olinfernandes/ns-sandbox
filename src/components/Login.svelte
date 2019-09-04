@@ -1,18 +1,6 @@
 <script>
-  import { loginUser } from "./api/authComponent";
-  let email = String();
-  let password = String();
-
-  function handleLogin(e = Object()) {
-    e.preventDefault();
-    loginUser({ email, password }, (err, data) => {
-      if (err) return console.warn(err);
-      const { message = "", token = "" } = data;
-      if (token !== "") localStorage.setItem("token", JSON.stringify(token));
-      console.info(message);
-      (email = ""), (password = "");
-    });
-  }
+  export let toggleRegister;
+  export let handleLogin;
 </script>
 
 <style>
@@ -50,7 +38,7 @@
         type="text"
         name="email"
         placeholder="Enter your email"
-        bind:value={email} />
+      />
     </div>
     <div class="form-group">
       <label>Password</label>
@@ -58,10 +46,11 @@
         type="password"
         name="password"
         placeholder="Enter your password"
-        bind:value={password} />
+      />
     </div>
     <div class="button-group">
       <button type="submit">Login</button>
     </div>
   </form>
+  <p>Don't have an account? <a href='.' on:click={toggleRegister}>Register</a></p>
 </div>

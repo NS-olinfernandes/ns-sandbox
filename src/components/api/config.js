@@ -5,13 +5,11 @@ export const api_routes = routes.map(route => {
     [route]: `${api_url}/${route}`
   };
 });
-// export const abortController = new AbortController();
-// export const signal = abortController.signal;
 
 export const setOptions = (params = {}) => {
   let token;
   let headers;
-  localStorage.length > 0
+  (localStorage.length > 0 && localStorage.getItem('token') !== undefined && localStorage.getItem('token') !== '')
     ? (token = JSON.parse(localStorage.getItem("token")))
     : (token = "");
   token !== "" && token !== undefined

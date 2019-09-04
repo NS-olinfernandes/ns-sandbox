@@ -90,7 +90,12 @@ export function authenticateUser(
                   : response.ok
                   ? callback(
                       null,
-                      { token },
+                      {
+                        firstName: user.name.firstName,
+                        lastName: user.name.lastName,
+                        email: user.email,
+                        token
+                      },
                       {
                         message: "Logged in successfully"
                       }

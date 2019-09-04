@@ -10,6 +10,6 @@ export function get(req, res) {
           ? res.status(500).send(err)
           : !user
           ? res.status(401).json(info)
-          : res.status(200).json(user);
+          : res.status(200).json({...user, ...info});
       });
 }
