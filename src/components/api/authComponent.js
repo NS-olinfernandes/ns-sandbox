@@ -33,6 +33,10 @@ export async function loginUser(user = {}, callback = Function()) {
         body: JSON.stringify(user)
       })
     );
+    if(!response.ok) {
+      const message = await response.json();
+      return callback(message)
+    }
     const data = await response.json();
     return callback(null, data);
   } catch (error) {
@@ -50,6 +54,10 @@ export async function registerUser(user = {}, callback = Function()) {
         body: JSON.stringify(user)
       })
     );
+    if(!response.ok) {
+      const message = await response.json();
+      return callback(message)
+    }
     const data = await response.json();
     return callback(null, data);
   } catch (error) {

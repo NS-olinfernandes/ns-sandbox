@@ -22,7 +22,11 @@
     let email = e.target[0].value;
     let password = e.target[1].value;
     loginUser({ email, password }, (err, data) => {
-      if (err) return console.warn(err);
+      if (err) {
+        e.target[0].value = '';
+        e.target[1].value = '';
+        return console.warn(err);
+      }
       const { message = "", token = "" } = data;
       if (token !== "") localStorage.setItem("token", JSON.stringify(token));
       user = {
@@ -43,7 +47,13 @@
     let email = e.target[2].value;
     let password = e.target[3].value;
     registerUser({ firstName, lastName, email, password }, (err, data) => {
-      if (err) return console.warn(err);
+      if (err) {
+        e.target[0].value = '';
+        e.target[1].value = '';
+        e.target[2].value = '';
+        e.target[3].value = '';
+        return console.warn(err);
+      }
       const { message = "", token = "" } = data;
       if (token !== "") localStorage.setItem("token", JSON.stringify(token));
       user = {
@@ -53,6 +63,7 @@
         isLoggedIn: true
       };
       // TODO - add popup info modal to display message
+      toggleRegister();
       console.info(message);
     });
   }
@@ -85,6 +96,7 @@
         isLoggedIn: false
       }
       localStorage.clear();
+      console.info('Logged out successfully!')
     })
   }
 
