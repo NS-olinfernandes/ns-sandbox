@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 
 services:
   ns-sandbox:
@@ -9,10 +9,10 @@ services:
     ports:
       - 8080:3000
     links:
-      - ns-mongodb1
-  ns-mongodb1:
+      - ns-mongodb
+  ns-mongodb:
     image: mongo
     volumes:
-      - 'mongodata:/data/db'
+      - "sandboxDB:/data/db"
 volumes:
-  mongodata:
+  sandboxDB:
