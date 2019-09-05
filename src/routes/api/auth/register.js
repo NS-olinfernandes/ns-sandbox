@@ -5,7 +5,9 @@ export function post(req, res) {
   const { body = null } = req;
   if (body === null) return res.status(400).json({ message: "Invalid input" });
   registerUser(body, (err, user, info) => {
-    err
+    err && err.name
+          ? res.status(401).json(err)
+          : err
       ? res.status(500).send(err)
       : !user
       ? res.status(401).json(info.message)

@@ -2,13 +2,18 @@
   import { getContext, onMount } from "svelte";
   import Login from "../components/Login.svelte";
   import Register from "../components/Register.svelte";
-  import { loginUser, registerUser, logoutUser, isLoggedIn } from "../components/api/authComponent";
+  import {
+    loginUser,
+    registerUser,
+    logoutUser,
+    isLoggedIn
+  } from "../components/api/authComponent";
 
-  let framework = getContext('framework');
-  let register = getContext('register');
-  let user = getContext('user');
+  let framework = getContext("framework");
+  let register = getContext("register");
+  let user = getContext("user");
 
-  function toggleRegister () {
+  function toggleRegister() {
     register = !register;
   }
 
@@ -23,8 +28,8 @@
     let password = e.target[1].value;
     loginUser({ email, password }, (err, data) => {
       if (err) {
-        e.target[0].value = '';
-        e.target[1].value = '';
+        e.target[0].value = "";
+        e.target[1].value = "";
         return console.warn(err);
       }
       const { message = "", token = "" } = data;
@@ -48,10 +53,10 @@
     let password = e.target[3].value;
     registerUser({ firstName, lastName, email, password }, (err, data) => {
       if (err) {
-        e.target[0].value = '';
-        e.target[1].value = '';
-        e.target[2].value = '';
-        e.target[3].value = '';
+        e.target[0].value = "";
+        e.target[1].value = "";
+        e.target[2].value = "";
+        e.target[3].value = "";
         return console.warn(err);
       }
       const { message = "", token = "" } = data;
@@ -73,7 +78,7 @@
       if (err) return console.warn(err);
       if (!data) return console.warn(`Access token invalid`);
       const { message = "", token = "" } = data;
-      if(token !== ''){
+      if (token !== "") {
         user = {
           firstName: data.firstName,
           lastName: data.lastName,
@@ -81,23 +86,27 @@
           isLoggedIn: true
         };
         localStorage.setItem("token", JSON.stringify(token));
-        return console.info(`Access token verified and ${user.email} logged in`);
+        return console.info(
+          `Access token verified and ${user.email} logged in`
+        );
       }
       console.warn(`Access token is invalid \n${token}`);
     });
   }
-  function handleLogout() {
-    logoutUser((err, data) => {
-      if(err) return console.warn(err);
+  async function handleLogout() {
+    try {
+      const data = await logoutUser();
       user = {
-        firstName: '',
-        lastName: '',
-        email: '',
+        firstName: "",
+        lastName: "",
+        email: "",
         isLoggedIn: false
-      }
+      };
       localStorage.clear();
-      console.info('Logged out successfully!')
-    })
+      console.log("Logged out successfully");
+    } catch (error) {
+      return console.warn(error);
+    }
   }
 
   onMount(() => {
@@ -126,16 +135,16 @@
   <title>NS Framework Sandbox</title>
 </svelte:head>
 
-<div  on:click={() => window.location.replace('/')}>
-<img alt='banner' src='ninestack_banner.jpg'/>
+<div on:click={() => window.location.replace('/')}>
+  <img alt="banner" src="ninestack_banner.jpg" />
 </div>
 {#if !user.isLoggedIn}
   {#if !register}
     <h1>Login!</h1>
-    <Login {toggleRegister} {handleLogin}/>
+    <Login {toggleRegister} {handleLogin} />
   {:else}
     <h1>Register!</h1>
-    <Register {toggleRegister} {handleRegister}/>
+    <Register {toggleRegister} {handleRegister} />
   {/if}
 {:else}
   <h1>Welcome {user.firstName} Select your Framework!</h1>

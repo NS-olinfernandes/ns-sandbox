@@ -5,6 +5,10 @@ const authApi = api_routes[0]["auth"];
 export async function logoutUser(callback = Function()) {
   try {
     const response = await fetch(`${authApi}/logout`, setOptions());
+    if (!response.ok) {
+      const message = await response.json();
+      return callback(message);
+    }
     const data = await response.json();
     return callback(null, data);
   } catch (error) {
@@ -16,6 +20,10 @@ export async function logoutUser(callback = Function()) {
 export async function isLoggedIn(callback = Function()) {
   try {
     const response = await fetch(`${authApi}/isloggedin`, setOptions());
+    if (!response.ok) {
+      const message = await response.json();
+      return callback(message);
+    }
     const data = await response.json();
     return callback(null, data);
   } catch (error) {
@@ -33,9 +41,9 @@ export async function loginUser(user = {}, callback = Function()) {
         body: JSON.stringify(user)
       })
     );
-    if(!response.ok) {
+    if (!response.ok) {
       const message = await response.json();
-      return callback(message)
+      return callback(message);
     }
     const data = await response.json();
     return callback(null, data);
@@ -54,9 +62,9 @@ export async function registerUser(user = {}, callback = Function()) {
         body: JSON.stringify(user)
       })
     );
-    if(!response.ok) {
+    if (!response.ok) {
       const message = await response.json();
-      return callback(message)
+      return callback(message);
     }
     const data = await response.json();
     return callback(null, data);
