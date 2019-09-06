@@ -128,7 +128,7 @@
 
   img {
     max-width: 90vw;
-    padding: 0 5vw;
+    margin: 0 5vw;
   }
 
   @media (min-width: 480px) {
