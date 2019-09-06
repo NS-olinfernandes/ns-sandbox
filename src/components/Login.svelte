@@ -52,5 +52,5 @@
       <button type="submit">Login</button>
     </div>
   </form>
-  <p>Don't have an account? <a href='.' on:click={toggleRegister}>Register</a></p>
+  <p>Don't have an account? <a href='.' on:click={toggleRegister} alt='Register'>Register</a></p>
 </div>

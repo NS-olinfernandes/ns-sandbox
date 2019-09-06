@@ -34,39 +34,29 @@
   <form on:submit={handleRegister}>
     <div class="form-group">
       <label>First Name</label>
-      <input
-        type="text"
-        name="firstName"
-        placeholder="Enter your first name"
-      />
+      <input type="text" name="firstName" placeholder="Enter your first name" />
     </div>
     <div class="form-group">
       <label>Last Name</label>
-      <input
-        type="text"
-        name="lastName"
-        placeholder="Enter your last name"
-      />
+      <input type="text" name="lastName" placeholder="Enter your last name" />
     </div>
     <div class="form-group">
       <label>Email</label>
-      <input
-        type="text"
-        name="email"
-        placeholder="Enter your email"
-      />
+      <input type="text" name="email" placeholder="Enter your email" />
     </div>
     <div class="form-group">
       <label>Password</label>
       <input
         type="password"
         name="password"
-        placeholder="Enter your password"
-      />
+        placeholder="Enter your password" />
     </div>
     <div class="button-group">
       <button type="submit">Register</button>
     </div>
   </form>
-  <p>Already have an account? <a href='.' on:click={toggleRegister}>Login</a></p>
+  <p>
+    Already have an account?
+    <a href="." on:click={toggleRegister} alt="login">Login</a>
+  </p>
 </div>

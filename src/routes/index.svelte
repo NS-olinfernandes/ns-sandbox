@@ -51,6 +51,8 @@
     let lastName = e.target[1].value;
     let email = e.target[2].value;
     let password = e.target[3].value;
+    if (email === "" || password === "")
+      return console.warn("Missing email and/or password!");
     registerUser({ firstName, lastName, email, password }, (err, data) => {
       if (err) {
         e.target[0].value = "";
@@ -67,9 +69,9 @@
         email: data.email,
         isLoggedIn: true
       };
-      // TODO - add popup info modal to display message
       toggleRegister();
       console.info(message);
+      // TODO - add popup info modal to display message
     });
   }
 
@@ -122,6 +124,11 @@
     text-transform: uppercase;
     font-weight: 700;
     margin: 0 0 0.5em 0;
+  }
+
+  img {
+    max-width: 90vw;
+    padding: 0 5vw;
   }
 
   @media (min-width: 480px) {
