@@ -1,9 +1,9 @@
 import { authenticateUser } from "../_config";
 
 // Login User - POST api response
-export function post(req, res) {
+export async function post(req, res) {
   const { body = null } = req;
-  body === null
+  return body === null
     ? res.status(400).json({ message: "Invalid input" })
     : authenticateUser(body, (err, user, info) => {
         err && err.name

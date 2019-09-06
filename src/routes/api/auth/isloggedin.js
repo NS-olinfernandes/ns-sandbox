@@ -3,7 +3,7 @@ import { authenticateToken } from "../_config";
 // IsLoggedIn User - GET api response
 export async function get(req, res) {
   const { authorization = null } = req.headers;
-  authorization === null
+  return authorization === null
     ? res.status(400).json({ message: "Missing authorization header" })
     : authenticateToken(authorization.split(" ")[1], (err, user, info) => {
         err && err.name
