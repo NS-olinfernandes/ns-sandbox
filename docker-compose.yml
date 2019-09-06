@@ -7,7 +7,7 @@ services:
     environment:
       NODE_ENV: production
     ports:
-      - 8080:3000
+      - 35468:3000
     links:
       - ns-mongodb
   ns-mongodb:
