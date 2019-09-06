@@ -1,10 +1,10 @@
 import { authenticateToken, documentOps } from "../_config";
 const db = "users";
 
-export function get(req, res) {
+export async function get(req, res) {
   const { authorization = null } = req.headers;
   const { slug = null } = req.params;
-  authorization === null || slug === null
+  return authorization === null || slug === null
     ? res.status(401).json("Invalid header or param")
     : authenticateToken(token, (err, payload, info) => {
         err
@@ -21,11 +21,11 @@ export function get(req, res) {
       });
 }
 
-export function put(req, res) {
+export async function put(req, res) {
   const { authorization = null } = req.headers;
   const { slug = null } = req.params;
   const { body = null } = req;
-  authorization === null || slug === null
+  return authorization === null || slug === null
     ? res.status(401).json("Invalid header or param")
     : authenticateToken(token, (err, payload, info) => {
         err
@@ -42,10 +42,10 @@ export function put(req, res) {
       });
 }
 
-export function del(req, res) {
+export async function del(req, res) {
   const { authorization = null } = req.headers;
   const { slug = null } = req.params;
-  authorization === null || slug === null
+  return authorization === null || slug === null
     ? res.status(401).json("Invalid header or param")
     : authenticateToken(authorization.split(" ")[1], (err, payload, info) =>
         err

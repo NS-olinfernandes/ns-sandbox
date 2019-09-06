@@ -2,9 +2,9 @@ import { collectionOps, authenticateToken } from "../_config";
 const db = "users";
 
 // GET users list api action & response
-export function get(req, res) {
+export async function get(req, res) {
   const { authorization = null } = req.headers;
-  authorization === null
+  return authorization === null
     ? res.status(401).json("Invalid header")
     : authenticateToken(authorization.split(" ")[1], (err, payload, info) => {
         err
@@ -22,10 +22,10 @@ export function get(req, res) {
 }
 
 // POST user list api action & response
-export function post(req, res) {
+export async function post(req, res) {
   const { authorization = null } = req.headers;
   const { body = null } = req;
-  authorization === null || body === null
+  return authorization === null || body === null
     ? res.status(401).json("Missing header and/or datalist")
     : authenticateToken(authorization.split(" ")[1], (err, payload, info) =>
         err
