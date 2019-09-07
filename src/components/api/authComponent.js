@@ -6,7 +6,7 @@ export async function logoutUser(callback = Function()) {
   try {
     const response = await fetch(`${authApi}/logout`, setOptions());
     if (!response.ok) {
-      const message = await response.json();
+      const { message } = response;
       return callback(message);
     }
     const data = await response.json();

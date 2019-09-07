@@ -19,45 +19,45 @@ export async function registerUser(newUser = Object(), callback = Function()) {
   const { firstName = "", lastName = "", email = "", password = "" } = newUser;
   email === "" || password === ""
     ? callback(null, false, {
-        message: "Missing email and/or password"
-      })
+      message: "Missing email and/or password"
+    })
     : User.findOne({ email }, (err, user) => {
-        if (err) return callback(err);
-        if (user)
-          return callback(null, false, {
-            message: `${email} already exists in database`
-          });
-        let registeredUser = new User({
-          name: {
-            firstName,
-            lastName
-          },
-          email,
-          password: hashPassword(password),
-          accessToken: generateToken({
-            email,
-            password: hashPassword(password)
-          })
+      if (err) return callback(err);
+      if (user)
+        return callback(null, false, {
+          message: `${email} already exists in database`
         });
-        registeredUser.save((error, data) => {
-          error
-            ? callback(error)
-            : !data
+      let registeredUser = new User({
+        name: {
+          firstName,
+          lastName
+        },
+        email,
+        password: hashPassword(password),
+        accessToken: generateToken({
+          email,
+          password: hashPassword(password)
+        })
+      });
+      registeredUser.save((error, data) => {
+        error
+          ? callback(error)
+          : !data
             ? callback(null, false, { message: "Something went wrong" })
             : callback(
-                null,
-                {
-                  firstName: data.name.firstName,
-                  lastName: data.name.lastName,
-                  email: data.email,
-                  token: data.accessToken
-                },
-                {
-                  message: `New user registered \n${registeredUser.email}`
-                }
-              );
-        });
+              null,
+              {
+                firstName: data.name.firstName,
+                lastName: data.name.lastName,
+                email: data.email,
+                token: data.accessToken
+              },
+              {
+                message: `New user registered \n${registeredUser.email}`
+              }
+            );
       });
+    });
 }
 
 // Login User - DB query & callback
@@ -67,29 +67,29 @@ export async function authenticateUser(
 ) {
   email === "" || password === ""
     ? callback(null, false, {
-        message: "Missing email and/or password"
-      })
+      message: "Missing email and/or password"
+    })
     : User.findOne({ email }, (err, user) => {
-        const hashedPassword = hashPassword(password);
-        const token = generateToken({ email, password: hashedPassword });
-        err
-          ? callback(err)
-          : !user
+      const hashedPassword = hashPassword(password);
+      const token = generateToken({ email, password: hashedPassword });
+      err
+        ? callback(err)
+        : !user
           ? callback(null, false, {
-              message: "Incorrect email"
-            })
+            message: "Incorrect email"
+          })
           : !bcrypt.compareSync(password, user.password)
-          ? callback(null, false, {
+            ? callback(null, false, {
               message: "Incorrect password"
             })
-          : User.updateOne(
+            : User.updateOne(
               { email },
               { accessToken: token },
               (error, response) => {
                 error
                   ? callback(error)
                   : response.ok
-                  ? callback(
+                    ? callback(
                       null,
                       {
                         firstName: user.name.firstName,
@@ -101,13 +101,13 @@ export async function authenticateUser(
                         message: "Logged in successfully"
                       }
                     )
-                  : callback(null, false, {
+                    : callback(null, false, {
                       message: "Something went wrong",
                       response
                     });
               }
             );
-      });
+    });
 }
 
 // Validate Token - Decrypt token & check DB for user
@@ -117,61 +117,61 @@ export async function authenticateToken(
 ) {
   token === ""
     ? callback(null, false, {
-        message: "Invalid token"
-      })
+      message: "Invalid token"
+    })
     : verifyToken(token, (err, payload) =>
-        err
-          ? callback(err)
-          : User.findOne(
-              { email: payload.email, accessToken: token },
-              (error, user) => {
-                error
-                  ? callback(error)
-                  : !user || user === null
-                  ? callback(null, false, {
-                      message: `No user found \n${payload.email}`
-                    })
-                  : callback(
-                      null,
-                      {
-                        firstName: user.name.firstName,
-                        lastName: user.name.lastName,
-                        email: user.email,
-                        token: user.accessToken
-                      },
-                      { message: "Token verified!" }
-                    );
-              }
-            )
-      );
+      err
+        ? callback(err)
+        : User.findOne(
+          { email: payload.email, accessToken: token },
+          (error, user) => {
+            error
+              ? callback(error)
+              : !user || user === null
+                ? callback(null, false, {
+                  message: `No user found \n${payload.email}`
+                })
+                : callback(
+                  null,
+                  {
+                    firstName: user.name.firstName,
+                    lastName: user.name.lastName,
+                    email: user.email,
+                    token: user.accessToken
+                  },
+                  { message: "Token verified!" }
+                );
+          }
+        )
+    );
 }
 
 // Logout User - DB query & callback
 export async function logoutUser(token = String(), callback = Function()) {
-  token === ""
-    ? callback(null, false, {
-        message: "Empty token"
-      })
+  return token === ""
+    ? callback({
+      message: "Empty token"
+    })
     : verifyToken(token, (err, payload) =>
-        err
-          ? callback(err)
-          : User.updateOne(
-              { email: payload.email },
-              { accessToken: "" },
-              (error, response) => {
-                error
-                  ? callback(error)
-                  : !response.ok
-                  ? callback(null, false, {
-                      message: "Something went wrong",
-                      ...response
-                    })
-                  : callback(null, response, {
-                      message: `${payload.email} Logged out`
-                    });
-              }
-            )
-      );
+      err
+        ? callback(err)
+        : User.updateOne(
+          { email: payload.email },
+          { accessToken: "" },
+          (error, response) =>
+            error
+              ? callback(error)
+              : !response.ok
+                ? callback({
+                  message: "Something went wrong",
+                  ...response
+                })
+                : callback(null, response, {
+                  message: `${payload.email} Logged out`
+                })
+
+        )
+    );
 }
 
 // Collection Operations - DB query & callback
@@ -184,10 +184,10 @@ export const collectionOps = {
           err
             ? callback(err)
             : dataList.length === 0
-            ? callback(null, false, {
+              ? callback(null, false, {
                 message: "No items in database"
               })
-            : callback(null, dataList, {
+              : callback(null, dataList, {
                 message: "Data list found"
               })
         );
@@ -196,10 +196,10 @@ export const collectionOps = {
           err
             ? callback(err)
             : dataList.length === 0
-            ? callback(null, false, {
+              ? callback(null, false, {
                 message: "No items in database"
               })
-            : callback(null, dataList, {
+              : callback(null, dataList, {
                 message: "Data list found"
               })
         );
@@ -234,13 +234,13 @@ export const collectionOps = {
         });
         dataList.filter(data => data.invalid === undefined).length > 0
           ? callback(null, false, {
-              message: "Encountered Invalid Inputs",
-              request: list,
-              response: dataList
-            })
+            message: "Encountered Invalid Inputs",
+            request: list,
+            response: dataList
+          })
           : callback(null, dataList, {
-              message: "New entries added to Database"
-            });
+            message: "New entries added to Database"
+          });
       case "todos":
         dataList = lists.map((list, i) => {
           const { title, body, author } = list;
@@ -255,13 +255,13 @@ export const collectionOps = {
         });
         dataList.filter(data => data.invalid === undefined).length > 0
           ? callback(null, false, {
-              message: "Encountered Invalid Inputs",
-              request: list,
-              response: dataList
-            })
+            message: "Encountered Invalid Inputs",
+            request: list,
+            response: dataList
+          })
           : callback(null, dataList, {
-              message: "New entries added to Database"
-            });
+            message: "New entries added to Database"
+          });
       default:
         return callback(null, false, {
           message: "Invalid Database"
@@ -280,10 +280,10 @@ export const documentOps = {
           err
             ? callback(err)
             : !user
-            ? callback(null, false, {
+              ? callback(null, false, {
                 message: "User not found"
               })
-            : callback(null, user, {
+              : callback(null, user, {
                 message: "User found"
               })
         );
@@ -292,10 +292,10 @@ export const documentOps = {
           err
             ? callback(err)
             : !todo
-            ? callback(null, false, {
+              ? callback(null, false, {
                 message: "Todo not found"
               })
-            : callback(null, todo, {
+              : callback(null, todo, {
                 message: "Todo found"
               })
         );
@@ -318,10 +318,10 @@ export const documentOps = {
           err
             ? callback(err)
             : !user
-            ? callback(null, false, {
+              ? callback(null, false, {
                 message: "User not found"
               })
-            : callback(null, user, {
+              : callback(null, user, {
                 message: "User updated"
               })
         );
@@ -330,10 +330,10 @@ export const documentOps = {
           err
             ? callback(err)
             : !todo
-            ? callback(null, false, {
+              ? callback(null, false, {
                 message: "Todo not found"
               })
-            : callback(null, todo, {
+              : callback(null, todo, {
                 message: "Todo updated"
               })
         );
@@ -351,16 +351,16 @@ export const documentOps = {
           err
             ? callback(err)
             : callback(null, id, {
-                message: `User id removed:\n ${id}`
-              })
+              message: `User id removed:\n ${id}`
+            })
         );
       case "todos":
         return Todo.remove({ _id: id }, err =>
           err
             ? callback(err)
             : callback(null, id, {
-                message: `Todo id removed:\n ${id}`
-              })
+              message: `Todo id removed:\n ${id}`
+            })
         );
       default:
         return callback(null, false, {

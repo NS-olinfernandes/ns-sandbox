@@ -9,9 +9,9 @@
     isLoggedIn
   } from "../components/api/authComponent";
 
-  let framework = getContext("framework");
-  let register = getContext("register");
-  let user = getContext("user");
+  $: framework = getContext("framework");
+  $: register = getContext("register");
+  $: user = getContext("user");
 
   function toggleRegister() {
     register = !register;
@@ -20,29 +20,6 @@
   function handleFramework(e = Object()) {
     framework = e.target.value;
     console.log(framework);
-  }
-
-  function handleLogin(e = Object()) {
-    e.preventDefault();
-    let email = e.target[0].value;
-    let password = e.target[1].value;
-    loginUser({ email, password }, (err, data) => {
-      if (err) {
-        e.target[0].value = "";
-        e.target[1].value = "";
-        return console.warn(err);
-      }
-      const { message = "", token = "" } = data;
-      if (token !== "") localStorage.setItem("token", JSON.stringify(token));
-      user = {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        isLoggedIn: true
-      };
-      // TODO - add popup info modal to display message
-      console.info(message);
-    });
   }
 
   function handleRegister(e = Object()) {
@@ -75,6 +52,33 @@
     });
   }
 
+  function handleLogin(e = Object()) {
+    e.preventDefault();
+    let email = e.target[0].value;
+    let password = e.target[1].value;
+    loginUser({ email, password }, (err, data) => {
+      if (err) {
+        if (/password/.test(err.message)) {
+          e.target[1].value = "";
+          return console.warn(err.message);
+        }
+        e.target[0].value = "";
+        e.target[1].value = "";
+        return console.warn(err.message);
+      }
+      const { message = "", token = "" } = data;
+      if (token !== "") localStorage.setItem("token", JSON.stringify(token));
+      user = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        isLoggedIn: true
+      };
+      // TODO - add popup info modal to display message
+      console.info(message);
+    });
+  }
+
   function handleLoggedIn() {
     isLoggedIn((err, data) => {
       if (err) return console.warn(err);
@@ -95,6 +99,7 @@
       console.warn(`Access token is invalid \n${token}`);
     });
   }
+
   async function handleLogout() {
     try {
       const data = await logoutUser();
@@ -104,14 +109,19 @@
         email: "",
         isLoggedIn: false
       };
-      localStorage.clear();
-      console.log("Logged out successfully");
+      return (
+        localStorage.clear(),
+        console.log("Logged out successfully"),
+        console.log(data)
+      );
     } catch (error) {
       return console.warn(error);
     }
   }
 
   onMount(() => {
+    let testUser = user;
+    console.log(testUser);
     localStorage.length > 0 && handleLoggedIn();
   });
 </script>
@@ -119,21 +129,21 @@
 <style>
   h1 {
     text-align: center;
-    margin: 0 auto;
+    margin: 0.25em auto;
     font-size: 1.8em;
     text-transform: uppercase;
     font-weight: 700;
-    margin: 0 0 0.5em 0;
   }
 
   img {
-    max-width: 90vw;
-    margin: 0 5vw;
+    max-width: 80vw;
+    margin: 0 5vw 0.25em 0 5vw;
   }
 
   @media (min-width: 480px) {
     h1 {
       font-size: 3em;
+      margin: 0.5em auto;
     }
   }
 </style>
@@ -145,7 +155,7 @@
 <div on:click={() => window.location.replace('/')}>
   <img alt="banner" src="ninestack_banner.jpg" />
 </div>
-{#if !user.isLoggedIn}
+{#if !user.$isLoggedIn}
   {#if !register}
     <h1>Login!</h1>
     <Login {toggleRegister} {handleLogin} />
@@ -154,7 +164,8 @@
     <Register {toggleRegister} {handleRegister} />
   {/if}
 {:else}
-  <h1>Welcome {user.firstName} Select your Framework!</h1>
+  <h1>Welcome {user.firstName}</h1>
+  <p>Select your Framework!</p>
   <select bind:value={framework} on:change={handleFramework}>
     <option value="">Select ...</option>
     <option value="angular">Angular</option>

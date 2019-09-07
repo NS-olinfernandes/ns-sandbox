@@ -1,17 +1,17 @@
 import mongoose from "mongoose";
-const db_url = "ns-mongodb/Sandbox";
-// const db_url = 'localhost/Sandbox';
+// const db_url = "ns-mongodb/Sandbox";
+const db_url = 'localhost/Sandbox';
 
 // MongoDB connection.
 mongoose.connect(`mongodb://${db_url}`, {
   useCreateIndex: true,
   useNewUrlParser: true
+}, error => {
+  if (error) return console.warn({ ...error })
+  console.info(`Connected to MongoDB @${db_url}`);
 });
-mongoose.connection.on("connected", () =>
-  console.log("Connected to Sanbox Database")
-);
 
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 // Todo model Schema
 const todoSchema = new Schema({
   title: {

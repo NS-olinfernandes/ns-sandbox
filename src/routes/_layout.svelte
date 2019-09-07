@@ -1,13 +1,12 @@
 <script>
   import { setContext } from "svelte";
-  import { framework, user, register } from '../bin/stores';
+  import { framework, User, register } from "../bin/stores";
 
   export let segment;
 
-  setContext('framework', $framework);
-  setContext('user', $user);
-  setContext('register', $register);
-
+  setContext("framework", $framework);
+  setContext("user", User);
+  setContext("register", $register);
 </script>
 
 <style>
