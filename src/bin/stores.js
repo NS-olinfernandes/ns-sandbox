@@ -19,7 +19,7 @@ const UserClass = class extends Object {
 		this.isLoggedIn = false;
 		console.log({ ...this });
 	}
-	registerUser(newUser = {
+	registerUser({
 		firstName = '',
 		lastName = '',
 		email = '',
