@@ -7,57 +7,46 @@ import { Todo, User } from "./_models";
 const secret = "7FGT5VQ2BU";
 // Generate new JWT
 const generateToken = (payload = Object()) =>
-  jwt.sign(payload, secret, { expiresIn: "5m" });
+  jwt.sign(payload, secret, { expiresIn: "45m" });
 // Verify existing JWT
-const verifyToken = (token = String(), callback = Function()) =>
-  jwt.verify(token, secret, callback);
+const verifyToken = (token = String()) =>
+  jwt.verify(token, secret);
 // Generate password hash
 const hashPassword = (password = String()) => bcrypt.hashSync(password, 8);
 
 // Register a new user - DB query & callback
-export async function registerUser(newUser = Object(), callback = Function()) {
-  const { firstName = "", lastName = "", email = "", password = "" } = newUser;
-  email === "" || password === ""
-    ? callback(null, false, {
-      message: "Missing email and/or password"
-    })
-    : User.findOne({ email }, (err, user) => {
-      if (err) return callback(err);
-      if (user)
-        return callback(null, false, {
-          message: `${email} already exists in database`
+export function registerUser(newUser = Object()) {
+  return new Promise((resolve, reject) => {
+    if (newUser.email === '' || newUser.password === '')
+      return reject({
+        name: 'UserError',
+        code: 10000,
+        errmsg: 'Missing email and/or password'
+      });
+    User
+      .findOne({ email: newUser.email })
+      .then(user => {
+        if (user) return reject({
+          name: 'UserError',
+          code: 11000,
+          errmsg: `${newUser.email} is taken. Choose another email`
         });
-      let registeredUser = new User({
-        name: {
-          firstName,
-          lastName
-        },
-        email,
-        password: hashPassword(password),
-        accessToken: generateToken({
-          email,
-          password: hashPassword(password)
-        })
-      });
-      registeredUser.save((error, data) => {
-        error
-          ? callback(error)
-          : !data
-            ? callback(null, false, { message: "Something went wrong" })
-            : callback(
-              null,
-              {
-                firstName: data.name.firstName,
-                lastName: data.name.lastName,
-                email: data.email,
-                token: data.accessToken
-              },
-              {
-                message: `New user registered \n${registeredUser.email}`
-              }
-            );
-      });
-    });
+        let registeredUser = new User({
+          name: {
+            firstName: newUser.firstName,
+            lastName: newUser.lastName
+          },
+          email: newUser.email,
+          password: hashPassword(newUser.password),
+          accessToken: generateToken({ email: newUser.email })
+        });
+        registeredUser
+          .save()
+          .then(data => resolve(data))
+          .catch(error => reject(error))
+      })
+      .catch(error => reject(error))
+  })
 }
 
 // Login User - DB query & callback
@@ -111,39 +100,24 @@ export async function authenticateUser(
 }
 
 // Validate Token - Decrypt token & check DB for user
-export async function authenticateToken(
-  token = String(),
-  callback = Function()
-) {
-  token === ""
-    ? callback(null, false, {
-      message: "Invalid token"
-    })
-    : verifyToken(token, (err, payload) =>
-      err
-        ? callback(err)
-        : User.findOne(
-          { email: payload.email, accessToken: token },
-          (error, user) => {
-            error
-              ? callback(error)
-              : !user || user === null
-                ? callback(null, false, {
-                  message: `No user found \n${payload.email}`
-                })
-                : callback(
-                  null,
-                  {
-                    firstName: user.name.firstName,
-                    lastName: user.name.lastName,
-                    email: user.email,
-                    token: user.accessToken
-                  },
-                  { message: "Token verified!" }
-                );
-          }
-        )
-    );
+export function authenticateToken(token = String()) {
+  return new Promise((resolve, reject) => {
+    if (token === '') return reject({
+      name: 'UserError',
+      code: 10000,
+      errmsg: 'Invalid token'
+    });
+    const payload = verifyToken(token);
+    User.findOne({
+      email: payload.email,
+      accessToken: token
+    }).then(user => resolve({
+      firstName: user.name.firstName,
+      lastName: user.name.lastName,
+      email: user.email,
+      token: user.accessToken
+    })).catch(error => reject(error))
+  })
 }
 
 // Logout User - DB query & callback

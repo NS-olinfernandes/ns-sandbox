@@ -3,13 +3,13 @@ import mongoose from "mongoose";
 const db_url = 'localhost/Sandbox';
 
 // MongoDB connection.
-mongoose.connect(`mongodb://${db_url}`, {
-  useCreateIndex: true,
-  useNewUrlParser: true
-}, error => {
-  if (error) return console.warn({ ...error })
-  console.info(`Connected to MongoDB @${db_url}`);
-});
+mongoose
+  .connect(`mongodb://${db_url}`, {
+    useCreateIndex: true,
+    useNewUrlParser: true
+  })
+  .then(() => console.log(`Connected to MongoDB @${db_url}`))
+  .catch(error => console.error(error));
 
 const { Schema } = mongoose;
 // Todo model Schema
@@ -57,7 +57,8 @@ const userSchema = new Schema({
     required: true
   },
   accessToken: {
-    type: String
+    type: String,
+    default: ''
   }
 });
 
