@@ -9,8 +9,8 @@ export async function get(req, res) {
     const user = await authenticateToken(authorization.split(' ')[1]);
     res.status(200).json(user);
   } catch (error) {
-    console.log(error);
     if (/Error/g.test(error.name)) return res.status(401).json(error);
+    console.log(error);
     res.status(500).json(error);
   }
   // return authorization === null

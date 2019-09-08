@@ -15,21 +15,19 @@ const verifyToken = (token = String()) =>
 const hashPassword = (password = String()) => bcrypt.hashSync(password, 8);
 
 // Register a new user - DB query & callback
-export function registerUser(newUser = Object()) {
-  return new Promise((resolve, reject) => {
+export const registerUser = (newUser = {}) =>
+  new Promise((resolve, reject) => {
     if (newUser.email === '' || newUser.password === '')
       return reject({
         name: 'UserError',
-        code: 10000,
-        errmsg: 'Missing email and/or password'
+        message: 'Missing email and/or password'
       });
     User
       .findOne({ email: newUser.email })
       .then(user => {
         if (user) return reject({
           name: 'UserError',
-          code: 11000,
-          errmsg: `${newUser.email} is taken. Choose another email`
+          message: `${newUser.email} is taken. Choose another email`
         });
         let registeredUser = new User({
           name: {
@@ -42,128 +40,106 @@ export function registerUser(newUser = Object()) {
         });
         registeredUser
           .save()
-          .then(data => resolve(data))
+          .then(data => resolve({
+            firstName: data.name.firstName,
+            lastName: data.name.lastName,
+            email: data.email,
+            token: data.accessToken
+          }))
           .catch(error => reject(error))
       })
       .catch(error => reject(error))
   })
-}
 
 // Login User - DB query & callback
-export async function authenticateUser(
-  { email = String(), password = String() },
-  callback = Function()
-) {
-  email === "" || password === ""
-    ? callback(null, false, {
-      message: "Missing email and/or password"
-    })
-    : User.findOne({ email }, (err, user) => {
-      const hashedPassword = hashPassword(password);
-      const token = generateToken({ email, password: hashedPassword });
-      err
-        ? callback(err)
-        : !user
-          ? callback(null, false, {
-            message: "Incorrect email"
-          })
-          : !bcrypt.compareSync(password, user.password)
-            ? callback(null, false, {
-              message: "Incorrect password"
-            })
-            : User.updateOne(
-              { email },
-              { accessToken: token },
-              (error, response) => {
-                error
-                  ? callback(error)
-                  : response.ok
-                    ? callback(
-                      null,
-                      {
-                        firstName: user.name.firstName,
-                        lastName: user.name.lastName,
-                        email: user.email,
-                        token
-                      },
-                      {
-                        message: "Logged in successfully"
-                      }
-                    )
-                    : callback(null, false, {
-                      message: "Something went wrong",
-                      response
-                    });
-              }
-            );
+export const authenticateUser = ({ email = '', password = '' }) =>
+  new Promise((resolve, reject) => {
+    if (email === '' || password === '') return reject({
+      name: 'UserError',
+      message: 'Missing email and/or password'
     });
-}
+    User
+      .findOne({ email })
+      .then(user => {
+        if (!user) return reject({
+          name: 'UserError',
+          message: `Email ${email} not found`
+        })
+        if (!bcrypt.compareSync(password, user.password)) return reject({
+          name: 'UserError',
+          message: 'Password mismatch'
+        });
+        user.accessToken = generateToken({ email });
+        user
+          .save()
+          .then(data => {
+            resolve({
+              firstName: data.name.firstName,
+              lastName: data.name.lastName,
+              email: data.email,
+              token: data.accessToken
+            })
+          })
+          .catch(error => reject(error))
+      })
+      .catch(error => reject(error))
+  })
 
 // Validate Token - Decrypt token & check DB for user
-export function authenticateToken(token = String()) {
-  return new Promise((resolve, reject) => {
+export const authenticateToken = (token = String()) =>
+  new Promise((resolve, reject) => {
     if (token === '') return reject({
       name: 'UserError',
-      code: 10000,
-      errmsg: 'Invalid token'
+      message: 'Invalid token'
     });
     const payload = verifyToken(token);
     User.findOne({
       email: payload.email,
       accessToken: token
-    }).then(user => resolve({
-      firstName: user.name.firstName,
-      lastName: user.name.lastName,
-      email: user.email,
-      token: user.accessToken
-    })).catch(error => reject(error))
+    }).then(user => !user
+      ? reject({
+        name: 'UserError',
+        message: 'User not found / Token is invalid'
+      })
+      : resolve({
+        firstName: user.name.firstName,
+        lastName: user.name.lastName,
+        email: user.email,
+        token: user.accessToken
+      })).catch(error => reject(error))
   })
-}
 
 // Logout User - DB query & callback
-export async function logoutUser(token = String(), callback = Function()) {
-  return token === ""
-    ? callback({
-      message: "Empty token"
-    })
-    : verifyToken(token, (err, payload) =>
-      err
-        ? callback(err)
-        : User.updateOne(
-          { email: payload.email },
-          { accessToken: "" },
-          (error, response) =>
-            error
-              ? callback(error)
-              : !response.ok
-                ? callback({
-                  message: "Something went wrong",
-                  ...response
-                })
-                : callback(null, response, {
-                  message: `${payload.email} Logged out`
-                })
-
-        )
-    );
-}
+export const logoutUser = (token = String()) =>
+  new Promise((resolve, reject) => {
+    if (token === '') return reject({
+      name: 'UserError',
+      message: 'Invalid token'
+    });
+    const payload = verifyToken(token);
+    User
+      .updateOne(
+        { email: payload.email, accessToken: token },
+        { accessToken: '' }
+      )
+      .then(data => resolve(data))
+      .catch(error => reject(error))
+  })
 
 // Collection Operations - DB query & callback
 export const collectionOps = {
   // GET document list from collection database.
-  getList: async (db = String(), callback = Function()) => {
+  getList: (db = String(), callback = Function()) => {
     switch (db) {
       case "users":
         return User.find((err, dataList) =>
           err
             ? callback(err)
             : dataList.length === 0
-              ? callback(null, false, {
-                message: "No items in database"
+              ? callback({
+                message: "Empty collection in database"
               })
-              : callback(null, dataList, {
-                message: "Data list found"
-              })
+              : callback(null, dataList)
         );
       case "todos":
         return Todo.find((err, dataList) =>
@@ -184,7 +160,7 @@ export const collectionOps = {
     }
   },
   // Add new document list to collection database.
-  addList: async (db = String(), lists = Array(), callback = Function()) => {
+  addList: (db = String(), lists = Array(), callback = Function()) => {
     if (!Array.isArray(lists) || lists.length === 0)
       return callback(null, false, {
         message: "Invalid/Empty list provided"
@@ -247,7 +223,7 @@ export const collectionOps = {
 // Document Operations - DB query & callback
 export const documentOps = {
   // GET document by id from collection database.
-  getDoc: async (db = String(), id = String(), callback = Function()) => {
+  getDoc: (db = String(), id = String(), callback = Function()) => {
     switch (db) {
       case "users":
         return User.findById(id, (err, user) =>
@@ -280,7 +256,7 @@ export const documentOps = {
     }
   },
   // Update document by id with new data and save to collection database.
-  updateDoc: async (
+  updateDoc: (
     db = String(),
     id = String(),
     data = Object(),
@@ -318,7 +294,7 @@ export const documentOps = {
     }
   },
   // Delete document by id from collection database.
-  deleteDoc: async (db = String(), id = String(), callback = Function()) => {
+  deleteDoc: (db = String(), id = String(), callback = Function()) => {
     switch (db) {
       case "users":
         return User.remove({ _id: id }, err =>

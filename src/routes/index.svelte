@@ -166,7 +166,7 @@
     <Login {toggleRegister} {handleLogin} />
   {:else}
     <h1>Register!</h1>
-    <Register {toggleRegister} {handleRegister} />
+    <Register {toggleRegister} handleRegister={user.register} />
   {/if}
 {:else}
   <h1>Welcome {$firstName}</h1>

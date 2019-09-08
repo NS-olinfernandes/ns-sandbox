@@ -5,14 +5,11 @@ const authApi = api_routes[0]["auth"];
 export async function logoutUser(callback = Function()) {
   try {
     const response = await fetch(`${authApi}/logout`, setOptions());
-    if (!response.ok) {
-      const { message } = response;
-      return callback(message);
-    }
     const data = await response.json();
-    return callback(null, data);
+    if (response.status !== 200) return callback(data)
+    callback(null, data);
   } catch (error) {
-    return callback(error);
+    callback(error);
   }
 }
 
@@ -51,18 +48,22 @@ export async function loginUser(user = {}, callback = Function()) {
 }
 
 // Add/Register User - POST api call
-export async function registerUser(user = {}, callback) {
-  const response = await fetch(
-    `${authApi}/register`,
-    setOptions({
-      method: "POST",
-      body: JSON.stringify(user)
-    })
-  );
-  if (!response.ok) {
-    const message = await response.json();
-    return callback(message);
-  }
-  const data = await response.json();
-  return callback(null, data);
+export function registerUser(user = { firstName: '', lastName: '', email: '', password: '' }) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const response = await fetch(
+        `${authApi}/register`,
+        setOptions({
+          method: "POST",
+          body: JSON.stringify(user)
+        })
+      );
+      const data = await response.json();
+      if (response.status !== 200) return reject(data)
+      resolve(data);
+    } catch (error) {
+      reject(error);
+    }
+
+  })
 }
