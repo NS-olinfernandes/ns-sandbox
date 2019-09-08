@@ -126,99 +126,159 @@ export const logoutUser = (token = String()) =>
       .catch(error => reject(error))
   })
 
-// Collection Operations - DB query & callback
-export const collectionOps = {
-  // GET document list from collection database.
-  getList: (db = String(), callback = Function()) => {
-    switch (db) {
-      case "users":
-        return User.find((err, dataList) =>
-          err
-            ? callback(err)
-            : dataList.length === 0
-              ? callback({
-                message: "Empty collection in database"
-              })
-              : callback(null, dataList)
-        );
-      case "todos":
-        return Todo.find((err, dataList) =>
-          err
-            ? callback(err)
-            : dataList.length === 0
-              ? callback(null, false, {
-                message: "No items in database"
-              })
-              : callback(null, dataList, {
-                message: "Data list found"
-              })
-        );
-      default:
-        return callback(null, false, {
-          message: "Invalid Database"
-        });
-    }
-  },
-  // Add new document list to collection database.
-  addList: (db = String(), lists = Array(), callback = Function()) => {
-    if (!Array.isArray(lists) || lists.length === 0)
-      return callback(null, false, {
-        message: "Invalid/Empty list provided"
-      });
-    let dataList;
-    switch (db) {
-      case "users":
-        dataList = lists.map((list, i) => {
-          const { firstName, lastName, email, password } = list;
-          const newUser = new User({
-            name: {
-              firstName,
-              lastName
-            },
-            email,
-            password: hashPassword(password)
-          });
-          return newUser.save((err, user) =>
-            err ? { invalid: i, error: err } : user
-          );
-        });
-        dataList.filter(data => data.invalid === undefined).length > 0
-          ? callback(null, false, {
-            message: "Encountered Invalid Inputs",
-            request: list,
-            response: dataList
-          })
-          : callback(null, dataList, {
-            message: "New entries added to Database"
-          });
-      case "todos":
-        dataList = lists.map((list, i) => {
-          const { title, body, author } = list;
-          const newTodo = new Todo({
-            title,
-            body,
-            created_by: author
-          });
-          return newTodo.save((err, todo) =>
-            err ? { invalid: i, error: err } : todo
-          );
-        });
-        dataList.filter(data => data.invalid === undefined).length > 0
-          ? callback(null, false, {
-            message: "Encountered Invalid Inputs",
-            request: list,
-            response: dataList
-          })
-          : callback(null, dataList, {
-            message: "New entries added to Database"
-          });
-      default:
-        return callback(null, false, {
-          message: "Invalid Database"
-        });
-    }
+export const collectionOps = class {
+  constructor(props) {
+    this.db = props || '';
+
+    this.getList() = this.getList.bind(this);
   }
-};
+  getList() {
+    return new Promise((resolve, reject) => {
+      switch (this.db) {
+        case "users":
+          return User.find()
+            .then(dataList => {
+              if (dataList.length === 0) return reject({ message: 'Empty collection in database' });
+              resolve(dataList);
+            })
+            .catch(error => reject(error))
+        case "todos":
+          return Todo.find()
+            .then(dataList => {
+              if (dataList.length === 0) return reject({ message: 'Empty collection in database' });
+              resolve(dataList);
+            })
+            .catch(error => reject(error));
+        default: reject({ message: "Invalid database" })
+      }
+    })
+  }
+  addList(lists = []) {
+    return new Promise((resolve, reject) => {
+      let dataList;
+      switch (this.db) {
+        case "users":
+          dataList = lists.map((list, i) => {
+            const {
+              firstName,
+              lastName,
+              email,
+              password
+            } = list;
+            const newUser = new User({
+              name: {
+                firstName,
+                lastName
+              },
+              email,
+              password: hashPassword(password),
+              accessToken: generateToken({ email })
+            });
+            newUser.save()
+              .then(user => user)
+              .catch(error => ({ invalid: i, error }))
+          })
+          return resolve(dataList);
+        case "todos":
+        default: reject({ message: 'Invalid database' })
+
+      }
+    })
+  }
+}
+// // Collection Operations - DB query & callback
+// export const collectionOps = {
+//   // GET document list from collection database.
+//   getList: (db = String(), callback = Function()) => {
+//     switch (db) {
+//       case "users":
+//         return User.find((err, dataList) =>
+//           err
+//             ? callback(err)
+//             : dataList.length === 0
+//               ? callback({
+//                 message: "Empty collection in database"
+//               })
+//               : callback(null, dataList)
+//         );
+//       case "todos":
+//         return Todo.find((err, dataList) =>
+//           err
+//             ? callback(err)
+//             : dataList.length === 0
+//               ? callback(null, false, {
+//                 message: "No items in database"
+//               })
+//               : callback(null, dataList, {
+//                 message: "Data list found"
+//               })
+//         );
+//       default:
+//         return callback(null, false, {
+//           message: "Invalid Database"
+//         });
+//     }
+//   },
+//   // Add new document list to collection database.
+//   addList: (db = String(), lists = Array(), callback = Function()) => {
+//     if (!Array.isArray(lists) || lists.length === 0)
+//       return callback(null, false, {
+//         message: "Invalid/Empty list provided"
+//       });
+//     let dataList;
+//     switch (db) {
+//       case "users":
+//         dataList = lists.map((list, i) => {
+//           const { firstName, lastName, email, password } = list;
+//           const newUser = new User({
+//             name: {
+//               firstName,
+//               lastName
+//             },
+//             email,
+//             password: hashPassword(password)
+//           });
+//           return newUser.save((err, user) =>
+//             err ? { invalid: i, error: err } : user
+//           );
+//         });
+//         (dataList.filter(data => data.invalid === undefined)).length > 0
+//           ? callback(null, false, {
+//             message: "Encountered Invalid Inputs",
+//             request: list,
+//             response: dataList
+//           })
+//           : callback(null, dataList, {
+//             message: "New entries added to Database"
+//           });
+//       case "todos":
+//         dataList = lists.map((list, i) => {
+//           const { title, body, author } = list;
+//           const newTodo = new Todo({
+//             title,
+//             body,
+//             created_by: author
+//           });
+//           return newTodo.save((err, todo) =>
+//             err ? { invalid: i, error: err } : todo
+//           );
+//         });
+//         dataList.filter(data => data.invalid === undefined).length > 0
+//           ? callback(null, false, {
+//             message: "Encountered Invalid Inputs",
+//             request: list,
+//             response: dataList
+//           })
+//           : callback(null, dataList, {
+//             message: "New entries added to Database"
+//           });
+//       default:
+//         return callback(null, false, {
+//           message: "Invalid Database"
+//         });
+//     }
+//   }
+// };
 
 // Document Operations - DB query & callback
 export const documentOps = {

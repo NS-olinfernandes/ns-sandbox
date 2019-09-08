@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-// const db_url = "ns-mongodb/Sandbox";
-const db_url = 'localhost/Sandbox';
+const db_url = "ns-mongodb/Sandbox";
+// const db_url = 'localhost/Sandbox';
 
 // MongoDB connection.
 mongoose
