@@ -12,7 +12,6 @@ express()
   .use(
     morgan("dev"),
     helmet(),
-    // expresSSL(),
     compression({ threshold: 0 }),
     sirv("static", { dev }),
     express.json(),

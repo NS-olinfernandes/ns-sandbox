@@ -5,8 +5,8 @@
   export let segment;
 
   setContext("framework", $framework);
-  setContext("User", new User({}));
   setContext("register", $register);
+  setContext("User", new User({}));
 </script>
 
 <style>
