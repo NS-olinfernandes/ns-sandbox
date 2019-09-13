@@ -4,6 +4,7 @@
 [submodule "ns-electron"]
 	path = ns-electron
 	url = https://github.com/NS-olinfernandes/ns-electron.git
+	branch = master
 [submodule "ns-svelte"]
 	path = ns-svelte
 	url = https://github.com/NS-olinfernandes/ns-svelte.git
