@@ -1,0 +1,1 @@
+docker-compose -f ns-api/docker-compose.yml build && docker-compose -f ns-api/docker-compose.yml up -d
