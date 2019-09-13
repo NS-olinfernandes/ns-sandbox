@@ -1,0 +1,9 @@
+[submodule "ns-api"]
+	path = ns-api
+	url = https://github.com/NS-olinfernandes/ns-api.git
+[submodule "ns-electron"]
+	path = ns-electron
+	url = https://github.com/NS-olinfernandes/ns-electron.git
+[submodule "ns-svelte"]
+	path = ns-svelte
+	url = https://github.com/NS-olinfernandes/ns-svelte.git
