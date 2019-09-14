@@ -1,14 +1,9 @@
 {
 	"folders": [
 		{
-			"path": "ns-api"
-		},
-		{
-			"path": "ns-electron"
-		},
-		{
-			"path": "ns-svelte"
+			"path": "."
 		}
+		
 	],
 	"settings": {}
 }
